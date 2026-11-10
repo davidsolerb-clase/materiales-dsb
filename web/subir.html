@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Subir material · Materiales DSB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;750&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="envoltorio">
+      <p class="ruta">~/materiales-dsb/subir</p>
+      <h1>Subir un material</h1>
+      <p class="entradilla">Elige los archivos, rellena la ficha y publica. Se guarda en el repositorio y aparece en la portada en un par de minutos.</p>
+    </div>
+  </header>
+
+  <main class="envoltorio formulario">
+    <form id="form" novalidate>
+      <fieldset>
+        <legend>Acceso</legend>
+        <label for="token">Token de GitHub</label>
+        <input id="token" type="password" autocomplete="off" placeholder="github_pat_…" required>
+        <p class="ayuda">Un token de grano fino con permiso <b>Contents: Read and write</b> solo para este repositorio. Se queda en este navegador. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Crear token</a></p>
+        <label class="casilla"><input id="recordar" type="checkbox"> Recordar el token en este navegador</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Archivos</legend>
+        <label for="archivos">HTML del material y, si los tiene, sus imágenes y demás archivos</label>
+        <input id="archivos" type="file" multiple required>
+        <ul class="lista-archivos" id="lista-archivos"></ul>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ficha</legend>
+        <label for="titulo">Título</label>
+        <input id="titulo" type="text" required>
+
+        <label for="slug">Nombre de la carpeta</label>
+        <input id="slug" type="text" required pattern="[a-z0-9]+(-[a-z0-9]+)*">
+        <p class="ayuda">Será la dirección del material. Minúsculas y guiones. No lo cambies después: rompería los enlaces.</p>
+
+        <label for="descripcion">Descripción</label>
+        <input id="descripcion" type="text" placeholder="Una frase: qué hace el alumnado">
+
+        <p class="etiqueta">Asignaturas</p>
+        <div class="casillas" id="asignaturas"></div>
+
+        <p class="etiqueta">Cursos <span class="ayuda">(ninguno = toda la ESO)</span></p>
+        <div class="casillas" id="cursos"></div>
+
+        <label for="etiquetas">Etiquetas</label>
+        <input id="etiquetas" type="text" placeholder="hardware, arrastrar">
+
+        <label for="hecho_con">Hecho con</label>
+        <input id="hecho_con" type="text" list="herramientas" placeholder="Gemini">
+        <datalist id="herramientas"><option value="Gemini"><option value="Claude"><option value="ChatGPT"></datalist>
+
+        <label class="casilla"><input id="borrador" type="checkbox"> Guardar como borrador (no sale en la portada)</label>
+      </fieldset>
+
+      <button id="enviar" type="submit">Publicar material</button>
+      <p class="estado" id="estado" role="status"></p>
+    </form>
+  </main>
+
+  <script src="subir.js"></script>
+</body>
+</html>

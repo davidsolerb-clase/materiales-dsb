@@ -1,6 +1,21 @@
 # Añadir un material
 
-Hay tres formas. Elige la que te resulte más cómoda; el resultado es el mismo.
+Hay cuatro formas. Elige la que te resulte más cómoda; el resultado es el mismo.
+
+## Con la página de subida
+
+Entra en [/subir.html](https://davidsolerb-clase.github.io/materiales-dsb/subir.html), elige los archivos, rellena la ficha y pulsa **Publicar material**. Si hay un solo HTML, se renombra a `index.html` automáticamente.
+
+La primera vez necesitas un token de GitHub:
+
+1. Ve a [GitHub → Settings → Personal access tokens → Fine-grained tokens](https://github.com/settings/personal-access-tokens/new).
+2. En **Repository access**, elige *Only select repositories* y marca `materiales-dsb`.
+3. En **Permissions → Contents**, elige *Read and write*.
+4. Genera el token, cópialo y pégalo en la página.
+
+El token solo da permiso sobre este repositorio y se queda en tu navegador. Si marcas «Recordar», no tendrás que volver a pegarlo. Hazlo solo en tu ordenador.
+
+La página sube los archivos sin carpetas dentro. Si el material tiene subcarpetas, usa otra de las formas.
 
 ## Desde la web de GitHub
 

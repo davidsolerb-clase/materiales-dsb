@@ -185,3 +185,56 @@ a:focus-visible, input:focus-visible, select:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Página de subida */
+.formulario { padding-bottom: 4rem; }
+.formulario form { max-width: 40rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.formulario fieldset {
+  margin: 0;
+  padding: 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.formulario legend { padding: 0 0.4rem; font-weight: 600; }
+.formulario label, .formulario .etiqueta { margin: 0.5rem 0 0; font-size: 0.9rem; font-weight: 500; }
+.formulario input[type="text"], .formulario input[type="password"], .formulario input[type="file"] {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--borde);
+  border-radius: calc(var(--radio) * 0.7);
+  background: var(--fondo);
+  color: var(--texto);
+  font: inherit;
+}
+.formulario input:focus-visible, .formulario button:focus-visible { outline: 2px solid var(--marca); outline-offset: 2px; }
+.ayuda { margin: 0; font-size: 0.82rem; font-weight: 400; color: var(--texto-suave); }
+.casillas { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.formulario .casilla { display: flex; align-items: center; gap: 0.45rem; font-weight: 400; }
+.casilla input { accent-color: var(--marca); width: 1.05rem; height: 1.05rem; }
+.lista-archivos { margin: 0.25rem 0 0; padding-left: 1.1rem; font: 400 0.82rem/1.6 var(--mono); color: var(--texto-suave); }
+.formulario button {
+  align-self: flex-start;
+  min-height: 2.75rem;
+  padding: 0 1.3rem;
+  border: 0;
+  border-radius: calc(var(--radio) * 0.7);
+  background: var(--marca);
+  color: var(--superficie);
+  font: 500 1rem/1 var(--sans);
+  cursor: pointer;
+}
+.formulario button:active { transform: scale(0.97); }
+.formulario button:disabled { opacity: 0.6; cursor: progress; }
+.estado { margin: 0; min-height: 1.5rem; font-size: 0.92rem; overflow-wrap: anywhere; }
+.estado.error { color: oklch(0.55 0.18 25); }
+.estado.ok { color: oklch(0.5 0.13 155); }
+@media (prefers-color-scheme: dark) {
+  .estado.error { color: oklch(0.75 0.15 25); }
+  .estado.ok { color: oklch(0.78 0.13 155); }
+}

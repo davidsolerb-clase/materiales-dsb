@@ -16,13 +16,13 @@ Puedes adaptarlos libremente (ver [Licencia](#licencia)).
 2. Mete dentro el HTML como `index.html`, y los demás archivos que use.
 3. Añade una `ficha.json` con el título, la asignatura y los cursos. Es opcional pero recomendable.
 
-Al subirlo a `main`, la web se regenera sola en un par de minutos. Los detalles están en [docs/nuevo-material.md](docs/nuevo-material.md).
+Al subirlo a `main`, la web se regenera sola en un par de minutos. También puedes hacerlo todo desde la [página de subida](https://davidsolerb-clase.github.io/materiales-dsb/subir.html). Los detalles están en [docs/nuevo-material.md](docs/nuevo-material.md).
 
 ## Cómo está organizado
 
 ```
 materiales/   un material por carpeta, con su ficha.json
-web/          la portada que lista los materiales
+web/          la portada y la página de subida
 scripts/      genera la web (Node, sin dependencias)
 docs/         guías cortas
 ```
@@ -35,4 +35,4 @@ La mayoría de materiales están creados con ayuda de IA (Gemini, Claude) y revi
 
 ## Licencia
 
-Los materiales tienen licencia [CC BY-SA 4.0](LICENSE): puedes usarlos, adaptarlos y compartirlos citando la autoría y con la misma licencia. El código de `scripts/` y `web/` tiene licencia [MIT](LICENSE-CODIGO).
+Materiales de David Soler con licencia [CC BY-SA 4.0](LICENSE): puedes usarlos, adaptarlos y compartirlos citando la autoría y con la misma licencia. El código de `scripts/` y `web/` tiene licencia [MIT](LICENSE-CODIGO).

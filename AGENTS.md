@@ -37,7 +37,7 @@ Los campos de la ficha están en [docs/nuevo-material.md](docs/nuevo-material.md
 
 - **Con varios archivos, sin compilar:** carpeta normal. Nada especial.
 - **Con compilación (Vite, etc.):** el material tiene su propio `package.json` dentro de su carpeta. En la ficha, `"construir": { "comando": "npm ci && npm run build", "salida": "dist" }`. Configura rutas relativas (`base: "./"` en Vite).
-- **Con servidor o base de datos:** no vive aquí. Va en su propio repositorio y hosting; aquí solo se añade su ficha con `"enlace"`.
+- **Con servidor o base de datos:** GitHub Pages no lo puede servir. Se despliega aparte (Vercel o Cloudflare apuntando a su carpeta, o su propio repositorio) y la ficha lleva `"enlace"` con la URL. Con `enlace`, el script no copia la carpeta.
 
 Más contexto en [docs/como-funciona.md](docs/como-funciona.md).
 

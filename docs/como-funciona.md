@@ -24,9 +24,9 @@ De más simple a más complejo. Casi todo debería quedarse en los dos primeros.
 | Un HTML | Actividad de clasificar componentes | Nada |
 | Varios archivos estáticos | App 3D con Three.js y modelos `.glb` | Nada; rutas relativas |
 | Se compila | Proyecto con Vite que ha crecido | `package.json` propio y `construir` en la ficha |
-| Necesita servidor | Partidas en directo, guardar notas | Otro repositorio y otro hosting; aquí solo la ficha con `enlace` |
+| Necesita servidor | Partidas en directo, guardar notas | Se despliega aparte; la ficha lleva `enlace` |
 
-Un material puede pasar de un tipo a otro sin cambiar de carpeta ni de URL, salvo el último.
+Un material puede pasar de un tipo a otro sin cambiar de carpeta. Solo el último cambia de URL.
 
 ## Antes de pensar en un servidor
 
@@ -36,7 +36,12 @@ Muchas cosas que parecen necesitarlo no lo necesitan:
 - **Entregar resultados:** que el material genere un código o un archivo que el alumno entrega por el aula virtual.
 - **Contenido editable:** un JSON dentro de la carpeta del material.
 
-Si de verdad hace falta servidor (tiempo real entre alumnos, cuentas, datos compartidos), ese material se separa a su propio repositorio y se despliega en Vercel, Netlify o Cloudflare Pages. Aquí queda su ficha con el enlace.
+Si de verdad hace falta servidor (tiempo real entre alumnos, cuentas, datos compartidos), ese material se despliega aparte, por ejemplo una app Next.js en Vercel o Cloudflare. Hay dos opciones:
+
+- **Dentro de este repositorio**, en su carpeta de `materiales/`. En Vercel o Cloudflare se crea un proyecto que apunta a esa carpeta (*Root Directory*). GitHub Pages no la publica: como su ficha lleva `enlace`, el script no la copia.
+- **En su propio repositorio**, si crece tanto que ya es un proyecto aparte. Aquí solo queda la carpeta con la ficha.
+
+En los dos casos, la tarjeta de la portada lleva a la URL externa.
 
 ## Despliegue
 

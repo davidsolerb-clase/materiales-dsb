@@ -2,17 +2,14 @@
   "asignaturas": {
     "tecnologia-digitalizacion": "Tecnología y Digitalización",
     "digitalizacion": "Digitalización",
-    "tecnologia": "Tecnología",
-    "programacion-robotica": "Programación y Robótica",
-    "tic": "TIC"
+    "trdr": "Taller de Relaciones Digitales Responsables",
+    "piar-1": "PIAR I",
+    "piar-2": "PIAR II"
   },
   "cursos": {
     "1eso": "1.º ESO",
     "2eso": "2.º ESO",
     "3eso": "3.º ESO",
-    "4eso": "4.º ESO",
-    "1bach": "1.º Bachillerato",
-    "2bach": "2.º Bachillerato",
-    "fp": "FP"
+    "4eso": "4.º ESO"
   }
 }

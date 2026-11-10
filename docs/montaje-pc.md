@@ -23,15 +23,13 @@ Caja, placa base, procesador, disipador, memoria RAM, tarjeta gráfica, SSD M.2,
 ## A tener en cuenta
 
 - **Un solo archivo de datos.** `piezas.json` con nombre, descripción, función, conectores, dónde encaja y en qué orden. Todas las actividades leen de ahí; si se corrige un dato, se corrige en todas.
-- **Modelos 3D.** Dos caminos:
-  - Hacerlos con formas simples (cajas, cilindros) en el propio código. Estilo coherente, ligero y sin problemas de licencia. Recomendado para empezar.
-  - Descargar modelos `.glb` (Sketchfab, Poly Pizza). Más realistas, pero cada uno con su licencia y su peso, y con estilos que no casan entre sí.
+- **Modelos 3D.** Primero, piezas hechas en código con formas simples (cajas, cilindros, ranuras). Un modelo de IA actual las genera bien y con detalle suficiente: estilo coherente, ligeras y sin problemas de licencia. Después, las piezas que lo pidan se sustituyen por modelos `.glb` descargados (Sketchfab, Poly Pizza), comprobando licencia y peso de cada uno. Como todo cuelga de `piezas.json`, cambiar el modelo de una pieza no toca las actividades.
 - **Puntos de encaje.** Cada ranura del modelo lleva un punto con nombre (`ranura-ram-1`). Al soltar una pieza cerca de su punto, se coloca sola. Así montar no exige precisión con el ratón.
 - **Ordenadores del aula.** Muchos son modestos. Pocas caras por modelo, sin sombras en tiempo real, y que solo se redibuje cuando algo cambia.
 - **Ratón y pantalla táctil.** Que funcione en tablets y en pizarra digital.
 - **Textos fuera del 3D.** Las fichas, preguntas y avisos van en HTML encima del canvas, no dibujados en 3D. Se leen mejor, se pueden traducir y son accesibles.
 - **Sin cuentas ni servidor.** El progreso se guarda en el navegador. Si algún día hace falta un ranking de clase, eso sí iría aparte (ver [como-funciona.md](como-funciona.md)).
-- **Tecnología.** Three.js sin framework, con Vite porque el proyecto va a crecer. Vivirá en `materiales/montaje-pc/` con `construir` en la ficha.
+- **Tecnología.** Three.js sin framework, con Vite. Vite da un servidor que recarga al guardar y empaqueta el proyecto para publicarlo; el resultado sigue siendo una web estática. Vivirá en `materiales/montaje-pc/` con `construir` en la ficha.
 
 ## Referencias
 
