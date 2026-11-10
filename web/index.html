@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Materiales DSB</title>
+  <meta name="description" content="Actividades interactivas de informática y tecnología para la ESO. Abren en el navegador, sin instalar nada.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;750&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="envoltorio">
+      <p class="ruta">~/materiales-dsb</p>
+      <h1>Materiales de informática y tecnología</h1>
+      <p class="entradilla">Actividades interactivas para clase. Se abren en el navegador, sin instalar nada ni crear cuentas.</p>
+    </div>
+  </header>
+
+  <main class="envoltorio">
+    <form class="filtros" id="filtros" role="search">
+      <label class="buscar">
+        <span class="sr">Buscar</span>
+        <input id="q" type="search" placeholder="Buscar por título o etiqueta" autocomplete="off">
+      </label>
+      <label>
+        <span class="sr">Asignatura</span>
+        <select id="asignatura"><option value="">Todas las asignaturas</option></select>
+      </label>
+      <label>
+        <span class="sr">Curso</span>
+        <select id="curso"><option value="">Todos los cursos</option></select>
+      </label>
+    </form>
+
+    <p class="recuento" id="recuento" aria-live="polite"></p>
+    <ul class="rejilla" id="rejilla"></ul>
+    <p class="vacio" id="vacio" hidden></p>
+  </main>
+
+  <footer class="pie envoltorio">
+    <p>Materiales con licencia CC BY-SA 4.0. Úsalos, adáptalos y compártelos citando la autoría.</p>
+    <p><a href="https://github.com/davidsolerb-clase/materiales-dsb">Código en GitHub</a></p>
+  </footer>
+
+  <script>window.CATALOGO = /*CATALOGO*/;</script>
+  <script src="portada.js"></script>
+</body>
+</html>

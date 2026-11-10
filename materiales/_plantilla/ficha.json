@@ -1,0 +1,10 @@
+{
+  "titulo": "Clasifica los componentes del ordenador",
+  "descripcion": "Arrastra cada pieza a su categoría: entrada, salida, almacenamiento o procesamiento.",
+  "asignaturas": ["tecnologia-digitalizacion"],
+  "cursos": ["1eso", "2eso"],
+  "etiquetas": ["hardware", "arrastrar"],
+  "hecho_con": "Gemini",
+  "fecha": "2026-11-10",
+  "estado": "listo"
+}
