@@ -29,7 +29,7 @@ Caja, placa base, procesador, disipador, memoria RAM, tarjeta gráfica, SSD M.2,
 - **Ratón y pantalla táctil.** Que funcione en tablets y en pizarra digital.
 - **Textos fuera del 3D.** Las fichas, preguntas y avisos van en HTML encima del canvas, no dibujados en 3D. Se leen mejor, se pueden traducir y son accesibles.
 - **Sin cuentas ni servidor.** El progreso se guarda en el navegador. Si algún día hace falta un ranking de clase, eso sí iría aparte (ver [como-funciona.md](como-funciona.md)).
-- **Tecnología.** Three.js sin framework, con Vite. Vite da un servidor que recarga al guardar y empaqueta el proyecto para publicarlo; el resultado sigue siendo una web estática. Vivirá en `materiales/montaje-pc/` con `construir` en la ficha.
+- **Tecnología.** Three.js sin framework y sin compilar: módulos de JavaScript normales y una copia de Three.js dentro de la carpeta, para que funcione aunque el centro bloquee las CDN. La carpeta que se ve en el repo es exactamente lo que se publica. Vivirá en `materiales/montaje-pc/`. Solo se pasaría a Vite si el proyecto se vuelve lento de cargar.
 
 ## Referencias
 
