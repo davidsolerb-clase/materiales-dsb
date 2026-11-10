@@ -2,22 +2,40 @@
 // para poder compartir, por ejemplo, "todo lo de 1.º ESO".
 const { categorias, materiales } = window.CATALOGO;
 const $ = (id) => document.getElementById(id);
-const campos = { q: $("q"), asignatura: $("asignatura"), curso: $("curso") };
+const form = $("filtros");
 
-rellenarSelect(campos.asignatura, categorias.asignaturas, usados("asignaturas"));
-rellenarSelect(campos.curso, categorias.cursos, usados("cursos"));
+// Cada asignatura tiene un color fijo, por su orden en categorias.json.
+const COLORES = [
+  ["var(--rojo)", "var(--papel)"],
+  ["var(--azul)", "var(--papel)"],
+  ["var(--amarillo)", "var(--tinta)"],
+  ["var(--verde)", "var(--tinta)"],
+  ["var(--rosa)", "var(--tinta)"],
+];
+const colorDe = Object.fromEntries(
+  Object.keys(categorias.asignaturas).map((k, i) => [k, COLORES[i % COLORES.length]])
+);
+const DIAS_NUEVO = 30;
+
+chips($("asignatura"), "asignatura", "Todas", categorias.asignaturas, usados("asignaturas"), true);
+chips($("curso"), "curso", "Todos", categorias.cursos, usados("cursos"));
 
 const params = new URLSearchParams(location.search);
-for (const [k, el] of Object.entries(campos)) el.value = params.get(k) || "";
+$("q").value = params.get("q") || "";
+for (const nombre of ["asignatura", "curso"]) {
+  const valor = params.get(nombre) || "";
+  const input = form.querySelector(`input[name="${nombre}"][value="${CSS.escape(valor)}"]`);
+  if (input) input.checked = true;
+}
 
-$("filtros").addEventListener("input", pintar);
-$("filtros").addEventListener("submit", (e) => e.preventDefault());
+form.addEventListener("input", pintar);
+form.addEventListener("submit", (e) => e.preventDefault());
 pintar();
 
 function pintar() {
-  const q = normalizar(campos.q.value);
-  const asig = campos.asignatura.value;
-  const curso = campos.curso.value;
+  const q = normalizar($("q").value);
+  const asig = form.elements.asignatura?.value || "";
+  const curso = form.elements.curso?.value || "";
 
   const visibles = materiales.filter((m) =>
     (!asig || m.asignaturas.includes(asig)) &&
@@ -31,11 +49,13 @@ function pintar() {
     : "";
   $("vacio").hidden = visibles.length > 0;
   $("vacio").textContent = materiales.length
-    ? "Ningún material coincide con estos filtros."
-    : "Todavía no hay materiales publicados.";
+    ? "Ningún material coincide con estos filtros"
+    : "Todavía no hay materiales publicados";
 
   const p = new URLSearchParams();
-  for (const [k, el] of Object.entries(campos)) if (el.value) p.set(k, el.value);
+  if ($("q").value) p.set("q", $("q").value);
+  if (asig) p.set("asignatura", asig);
+  if (curso) p.set("curso", curso);
   history.replaceState(null, "", p.size ? `?${p}` : location.pathname);
 }
 
@@ -45,7 +65,12 @@ function tarjeta(m) {
   a.href = m.enlace;
   if (m.externo) a.rel = "noopener";
 
+  const [fondo, texto] = colorDe[m.asignaturas[0]] || [];
   const fig = el("div", "miniatura");
+  if (fondo) {
+    fig.style.setProperty("--color", fondo);
+    fig.style.setProperty("--sobre", texto);
+  }
   if (m.portada) {
     const img = el("img");
     img.src = m.portada;
@@ -54,7 +79,6 @@ function tarjeta(m) {
     fig.append(img);
   } else {
     fig.append(el("span", "iniciales", iniciales(m.titulo)));
-    fig.style.setProperty("--tono", tono(m.slug));
   }
 
   const cuerpo = el("div", "cuerpo");
@@ -67,11 +91,12 @@ function tarjeta(m) {
   cuerpo.append(datos);
 
   const pie = el("p", "pie-tarjeta");
-  pie.append(el("span", "ruta", m.externo ? new URL(m.enlace).host : `${m.slug}/`));
+  pie.append(el("span", "ruta-material", m.externo ? new URL(m.enlace).host : `${m.slug}/`));
   if (m.hecho_con) pie.append(el("span", "", `hecho con ${m.hecho_con}`));
   cuerpo.append(pie);
 
   a.append(fig, cuerpo);
+  if (esNuevo(m.fecha)) a.append(el("span", "nuevo", "Nuevo"));
   li.append(a);
   return li;
 }
@@ -79,25 +104,40 @@ function tarjeta(m) {
 // "1eso,2eso" -> "1.º–2.º ESO"; las cuatro de la ESO -> "ESO".
 function textoCursos(cursos) {
   const eso = ["1eso", "2eso", "3eso", "4eso"];
-  if (eso.every((c) => cursos.includes(c)) && cursos.length === 4) return "ESO";
-  const soloEso = cursos.every((c) => eso.includes(c));
-  if (soloEso && cursos.length > 1) {
+  if (cursos.length === 4 && eso.every((c) => cursos.includes(c))) return "ESO";
+  if (cursos.length > 1 && cursos.every((c) => eso.includes(c))) {
     const n = cursos.map((c) => Number(c[0])).sort();
-    const seguidos = n.every((x, i) => i === 0 || x === n[i - 1] + 1);
-    if (seguidos) return `${n[0]}.º–${n.at(-1)}.º ESO`;
+    if (n.every((x, i) => i === 0 || x === n[i - 1] + 1)) return `${n[0]}.º–${n.at(-1)}.º ESO`;
   }
   return cursos.map((c) => categorias.cursos[c]).join(", ");
 }
 
-function rellenarSelect(select, opciones, usadas) {
-  for (const [valor, texto] of Object.entries(opciones)) {
-    if (!usadas.has(valor)) continue;
-    select.append(new Option(texto, valor));
+function chips(fieldset, nombre, todas, opciones, usadas, conColor = false) {
+  const lista = Object.entries(opciones).filter(([valor]) => usadas.has(valor));
+  if (!lista.length) return fieldset.remove();
+  for (const [valor, texto] of [["", todas], ...lista]) {
+    const label = el("label");
+    const input = el("input");
+    input.type = "radio";
+    input.name = nombre;
+    input.value = valor;
+    input.checked = valor === "";
+    const span = el("span", "", texto);
+    if (conColor && valor) {
+      span.classList.add("muestra");
+      span.style.setProperty("--color", colorDe[valor][0]);
+    }
+    label.append(input, span);
+    fieldset.append(label);
   }
 }
 
 function usados(campo) {
   return new Set(materiales.flatMap((m) => m[campo]));
+}
+
+function esNuevo(fecha) {
+  return (Date.now() - new Date(fecha).getTime()) / 86400000 < DIAS_NUEVO;
 }
 
 function el(tag, clase = "", texto) {
@@ -113,10 +153,4 @@ function normalizar(s) {
 
 function iniciales(t) {
   return t.split(/\s+/).filter((w) => w.length > 3).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || t[0];
-}
-
-function tono(s) {
-  let h = 0;
-  for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return h;
 }

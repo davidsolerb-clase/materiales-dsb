@@ -7,7 +7,7 @@
   <meta name="description" content="Actividades interactivas de informática y tecnología para la ESO. Abren en el navegador, sin instalar nada.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;750&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -23,16 +23,10 @@
     <form class="filtros" id="filtros" role="search">
       <label class="buscar">
         <span class="sr">Buscar</span>
-        <input id="q" type="search" placeholder="Buscar por título o etiqueta" autocomplete="off">
+        <input id="q" name="q" type="search" placeholder="Buscar…" autocomplete="off">
       </label>
-      <label>
-        <span class="sr">Asignatura</span>
-        <select id="asignatura"><option value="">Todas las asignaturas</option></select>
-      </label>
-      <label>
-        <span class="sr">Curso</span>
-        <select id="curso"><option value="">Todos los cursos</option></select>
-      </label>
+      <fieldset class="chips" id="asignatura"><legend>Asignatura</legend></fieldset>
+      <fieldset class="chips" id="curso"><legend>Curso</legend></fieldset>
     </form>
 
     <p class="recuento" id="recuento" aria-live="polite"></p>
@@ -40,9 +34,11 @@
     <p class="vacio" id="vacio" hidden></p>
   </main>
 
-  <footer class="pie envoltorio">
-    <p>Materiales de David Soler con licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es">CC BY-SA 4.0</a>. Úsalos, adáptalos y compártelos citando la autoría.</p>
-    <p><a href="https://github.com/davidsolerb-clase/materiales-dsb">Código en GitHub</a></p>
+  <footer class="pie">
+    <div class="envoltorio">
+      <p>Materiales de David Soler con licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es">CC BY-SA 4.0</a>. Úsalos, adáptalos y compártelos citando la autoría.</p>
+      <p><a href="https://github.com/davidsolerb-clase/materiales-dsb">Código en GitHub</a></p>
+    </div>
   </footer>
 
   <script>window.CATALOGO = /*CATALOGO*/;</script>
