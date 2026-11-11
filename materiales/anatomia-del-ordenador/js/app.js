@@ -1,10 +1,13 @@
 // Anatomía del ordenador.
 //
-//   datos.js       las piezas (nombres, textos, modelos)
+//   datos.js       las piezas y sus partes (nombres y textos)
+//   modelos/       los modelos 3D, hechos con código
 //   visor.js       el visor 3D
 //   escenario.js   la caja donde se ve una pieza
 //   progreso.js    lo que se guarda en el navegador
+//   partida.js     lo común a las actividades de preguntas
 //   reto.js        actividad «¿Qué pieza es?»
+//   dentro.js      actividad «Por dentro»
 //
 // Para añadir una actividad: crea un módulo como reto.js y añádelo a ACTIVIDADES.
 // Aparece sola en el inicio y en la dirección #/jugar/<id>/<nivel>.
@@ -14,8 +17,9 @@ import { Visor } from "./visor.js";
 import { escenario, ponerPieza } from "./escenario.js";
 import { progreso, marcarVista, borrarProgreso, estrellas } from "./progreso.js";
 import { reto } from "./reto.js";
+import { dentro } from "./dentro.js";
 
-const ACTIVIDADES = [reto];
+const ACTIVIDADES = [reto, dentro];
 
 const app = document.getElementById("app");
 const visor = new Visor();
@@ -34,17 +38,16 @@ function navegar() {
   alSalir = null;
   const [, seccion, a, b] = location.hash.replace(/^#/, "").split("/");
   app.className = "";
-  if (seccion === "atlas") alSalir = atlas(pieza(a) || PIEZAS[0]);
-  else if (seccion === "jugar" && ACTIVIDADES.some((x) => x.id === a)) {
-    const act = ACTIVIDADES.find((x) => x.id === a);
-    const nivel = act.niveles.find((n) => n.id === b) || act.niveles[0];
-    alSalir = act.montar(app, ctx, nivel);
-  } else alSalir = inicio();
+  const act = seccion === "jugar" && ACTIVIDADES.find((x) => x.id === a);
+  if (seccion === "atlas") alSalir = atlas(pieza(a) || PIEZAS[0], b === "dentro");
+  else if (act && act.necesita3d && !visor.ok) alSalir = sin3d(act);
+  else if (act) alSalir = act.montar(app, ctx, act.niveles.find((n) => n.id === b) || act.niveles[0]);
+  else alSalir = inicio();
   window.scrollTo(0, 0);
   app.querySelector("h1")?.focus({ preventScroll: true });
 }
 
-export function pintaEstrellas(n) {
+function pintaEstrellas(n) {
   return `<span class="estrellas" role="img" aria-label="${n} de 3 estrellas">${"★".repeat(n)}<i>${"★".repeat(3 - n)}</i></span>`;
 }
 
@@ -63,10 +66,10 @@ function inicio() {
     <section class="portada">
       <div class="portada-texto">
         <h1 tabindex="-1">Mira un ordenador <em>por dentro</em></h1>
-        <p class="entrada">Gira cada pieza en 3D, descubre para qué sirve y después ponte a prueba.</p>
+        <p class="entrada">Gira cada pieza en 3D, ábrela para ver qué lleva dentro y después ponte a prueba.</p>
         <div class="fila">
           <a class="boton principal" href="#/atlas/${PIEZAS[0].id}">Explorar las piezas</a>
-          <a class="boton" href="#actividades">Ir al reto</a>
+          <a class="boton" href="#actividades">Ir a los retos</a>
         </div>
       </div>
       <div class="portada-3d">
@@ -77,7 +80,7 @@ function inicio() {
     <section class="bloque">
       <div class="bloque-cabeza">
         <h2><span class="paso">1</span>Explora</h2>
-        <p>${vistas ? `Has visto <b>${vistas} de ${PIEZAS.length}</b> piezas.` : `${PIEZAS.length} piezas. Toca una para verla de cerca.`}</p>
+        <p>${vistas ? `Has visto <b>${vistas} de ${PIEZAS.length}</b> piezas.` : `${PIEZAS.length} piezas. Toca una para verla de cerca y abrirla.`}</p>
       </div>
       <ul class="piezas">
         ${PIEZAS.map(
@@ -87,18 +90,19 @@ function inicio() {
       </ul>
     </section>
 
-    <section class="bloque" id="actividades">
-      ${ACTIVIDADES.map(
-        (act, i) => `
+    <div id="actividades">
+    ${ACTIVIDADES.map(
+      (act, i) => `
+      <section class="bloque">
         <div class="bloque-cabeza">
           <h2><span class="paso">${i + 2}</span>${act.titulo}</h2>
           <p>${act.descripcion}</p>
         </div>
         <div class="niveles">
           ${act.niveles
-            .map((n) => {
+            .map((n, k) => {
               const r = progreso.retos[`${act.id}-${n.id}`];
-              return `<article class="nivel nivel-${n.id}">
+              return `<article class="nivel dificultad-${k + 1}">
                 <p class="nivel-etiqueta">${n.etiqueta}</p>
                 <h3>${n.nombre}</h3>
                 <p>${n.texto}</p>
@@ -109,9 +113,10 @@ function inicio() {
               </article>`;
             })
             .join("")}
-        </div>`,
-      ).join("")}
-    </section>
+        </div>
+      </section>`,
+    ).join("")}
+    </div>
 
     <footer class="pie">
       <span>Tu progreso se guarda solo en este navegador.</span>
@@ -121,25 +126,26 @@ function inicio() {
       </span>
     </footer>`;
 
-  // Carrusel de piezas en la portada.
+  // Carrusel de piezas en la portada. Se para un rato si alguien gira la pieza.
   const caja = app.querySelector(".portada-3d");
   const rotulo = caja.querySelector(".rotulo");
   const esc = escenario({ pista: false });
   caja.prepend(esc);
   let turno = 0;
   let reloj;
-  let vivo = true;
-  const siguiente = async () => {
+  const siguiente = () => {
     const p = PIEZAS[turno % PIEZAS.length];
     turno++;
     rotulo.textContent = p.nombre;
     rotulo.style.setProperty("--tono", p.color);
-    await ponerPieza(esc, visor, { ...p, zoom: (p.zoom || 1) * 1.2 });
-    if (!vivo) return;
-    visor.precargar(PIEZAS[turno % PIEZAS.length]);
+    ponerPieza(esc, visor, { ...p, zoom: 1.15 });
     reloj = setTimeout(siguiente, 5200);
   };
   siguiente();
+  esc.addEventListener("tocado", () => {
+    clearTimeout(reloj);
+    reloj = setTimeout(siguiente, 14000);
+  });
 
   app.querySelector("[data-creditos]").onclick = creditos;
   const borrar = app.querySelector("[data-borrar]");
@@ -154,7 +160,6 @@ function inicio() {
   };
 
   return () => {
-    vivo = false;
     clearTimeout(reloj);
     visor.vaciar();
   };
@@ -162,11 +167,12 @@ function inicio() {
 
 // ---------------------------------------------------------------- Atlas
 
-function atlas(p) {
+function atlas(p, porDentro) {
   app.className = "p-atlas";
   const i = PIEZAS.indexOf(p);
   const antes = PIEZAS[(i + PIEZAS.length - 1) % PIEZAS.length];
   const despues = PIEZAS[(i + 1) % PIEZAS.length];
+  const cola = porDentro ? "/dentro" : "";
   marcarVista(p.id);
 
   app.innerHTML = `
@@ -179,33 +185,72 @@ function atlas(p) {
       <article class="atlas-ficha">
         <p class="cuenta">${String(i + 1).padStart(2, "0")} <span>/ ${String(PIEZAS.length).padStart(2, "0")}</span></p>
         <h1 tabindex="-1">${p.nombre}</h1>
-        <h2>¿Para qué sirve?</h2>
-        <p class="definicion">${p.def}</p>
-        <h2>Para recordarlo</h2>
-        <p>${p.pista}</p>
-        <h2>¿Dónde va?</h2>
-        <p>${p.sitio}</p>
+        <div class="pestanas" role="tablist">
+          <a role="tab" aria-selected="${!porDentro}" href="#/atlas/${p.id}">Qué es</a>
+          <a role="tab" aria-selected="${porDentro}" href="#/atlas/${p.id}/dentro">Por dentro</a>
+        </div>
+        ${
+          porDentro
+            ? `<p class="ayuda">${visor.ok ? "Toca una parte, aquí o en el modelo." : "Toca una parte para leer qué hace."}</p>
+               <ol class="partes">${p.partes
+                 .map((x, k) => `<li><button data-parte="${x.id}" aria-expanded="false"><i>${k + 1}</i><b>${x.nombre}</b></button><p hidden>${x.def}</p></li>`)
+                 .join("")}</ol>`
+            : `<h2>¿Para qué sirve?</h2>
+               <p class="definicion">${p.def}</p>
+               <h2>Para recordarlo</h2>
+               <p>${p.pista}</p>
+               <h2>¿Dónde va?</h2>
+               <p>${p.sitio}</p>
+               <a class="boton abrir-pieza" href="#/atlas/${p.id}/dentro">Ábrela: mira qué lleva dentro →</a>`
+        }
         <div class="fila atlas-nav">
-          <a class="boton" href="#/atlas/${antes.id}" aria-label="Pieza anterior: ${antes.nombre}">← Anterior</a>
-          <a class="boton principal" href="#/atlas/${despues.id}" aria-label="Pieza siguiente: ${despues.nombre}">Siguiente →</a>
+          <a class="boton" href="#/atlas/${antes.id}${cola}" aria-label="Pieza anterior: ${antes.nombre}">← Anterior</a>
+          <a class="boton principal" href="#/atlas/${despues.id}${cola}" aria-label="Pieza siguiente: ${despues.nombre}">Siguiente →</a>
         </div>
       </article>
     </div>
     <nav class="tira" aria-label="Todas las piezas">
       ${PIEZAS.map(
-        (x) => `<a class="ficha ${x === p ? "actual" : ""}" href="#/atlas/${x.id}" style="--tono:${x.color}" ${x === p ? 'aria-current="true"' : ""}>
+        (x) => `<a class="ficha ${x === p ? "actual" : ""}" href="#/atlas/${x.id}${cola}" style="--tono:${x.color}" ${x === p ? 'aria-current="true"' : ""}>
           <img src="${x.foto}" alt=""><span>${x.nombre}</span></a>`,
       ).join("")}
     </nav>`;
 
-  const esc = escenario();
+  const esc = escenario({ abrible: true });
   app.querySelector(".atlas-3d").append(esc);
-  ponerPieza(esc, visor, p).then(() => visor.precargar(despues));
+  ponerPieza(esc, visor, p, { abierta: porDentro ? 1 : 0 });
   app.querySelector(".tira .actual").scrollIntoView({ block: "nearest", inline: "center" });
 
+  if (porDentro) {
+    const chapas = p.partes.map((x, k) => [x.id, String(k + 1)]);
+    visor.marcar?.(chapas);
+    const elegir = (id) => {
+      for (const b of app.querySelectorAll("[data-parte]")) {
+        const esta = b.dataset.parte === id && b.getAttribute("aria-expanded") !== "true";
+        b.setAttribute("aria-expanded", esta);
+        b.nextElementSibling.hidden = !esta;
+        if (esta) {
+          visor.resaltar?.(id);
+          b.scrollIntoView({ block: "nearest" });
+        }
+      }
+      if (!app.querySelector('[aria-expanded="true"]')) visor.resaltar?.(null);
+    };
+    app.querySelector(".partes").onclick = (ev) => {
+      const b = ev.target.closest("[data-parte]");
+      if (!b) return;
+      if (b.getAttribute("aria-expanded") !== "true") esc.abrir(1);
+      elegir(b.dataset.parte);
+    };
+    esc.addEventListener("parte", (ev) => {
+      if (app.querySelector(`[data-parte="${ev.detail}"]`)?.getAttribute("aria-expanded") !== "true") elegir(ev.detail);
+    });
+  }
+
   const teclas = (e) => {
-    if (e.key === "ArrowRight") ir(`/atlas/${despues.id}`);
-    if (e.key === "ArrowLeft") ir(`/atlas/${antes.id}`);
+    if (e.target.matches("input")) return;
+    if (e.key === "ArrowRight") ir(`/atlas/${despues.id}${cola}`);
+    if (e.key === "ArrowLeft") ir(`/atlas/${antes.id}${cola}`);
   };
   document.addEventListener("keydown", teclas);
   return () => {
@@ -214,21 +259,26 @@ function atlas(p) {
   };
 }
 
-// ---------------------------------------------------------------- Créditos
+// ---------------------------------------------------------------- Avisos
+
+function sin3d(act) {
+  app.innerHTML = `
+    <header class="cabecera"><a class="volver" href="#/">← Inicio</a></header>
+    <div class="resultado">
+      <h1 tabindex="-1">${act.titulo}</h1>
+      <p class="entrada">Este reto necesita 3D y este navegador no lo puede mostrar. Prueba con otro navegador o con otro dispositivo.</p>
+      <a class="boton principal" href="#/">Volver al inicio</a>
+    </div>`;
+  return () => {};
+}
 
 function creditos() {
   const d = document.getElementById("creditos");
   d.innerHTML = `
     <h2 id="creditos-titulo">Créditos</h2>
-    <p>Modelos 3D de Sketchfab, reunidos por el proyecto
+    <p>Material de David Soler, hecho con ayuda de IA. Los modelos 3D son propios: están dibujados con código para este material.</p>
+    <p>La idea de un atlas 3D de piezas viene de
       <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a>.</p>
-    <ul>
-      ${PIEZAS.map(
-        (p) => `<li><b>${p.nombre}:</b> «<a href="${p.credito.url}" target="_blank" rel="noopener">${p.credito.obra}</a>», de ${p.credito.autor}.
-          <a href="${p.credito.licencia.url}" target="_blank" rel="noopener">${p.credito.licencia.nombre}</a>.
-          ${p.credito.cambios ? "Comprimido para la web." : "Sin cambios."}</li>`,
-      ).join("")}
-    </ul>
     <p>Visor: <a href="https://threejs.org" target="_blank" rel="noopener">Three.js</a> (MIT).
       Tipografías: Bricolage Grotesque y Outfit (SIL OFL).</p>
     <form method="dialog"><button class="boton principal">Cerrar</button></form>`;
@@ -236,4 +286,4 @@ function creditos() {
 }
 
 addEventListener("hashchange", navegar);
-navegar();
+document.fonts.load('700 20px "Outfit"').catch(() => {}).finally(navegar); // los rótulos de los modelos usan esta letra
