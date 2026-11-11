@@ -1,0 +1,10 @@
+{
+  "titulo": "Anatomía del ordenador",
+  "descripcion": "Gira en 3D las piezas de un ordenador, descubre para qué sirve cada una y ponte a prueba en dos niveles.",
+  "asignaturas": ["trdr"],
+  "cursos": ["1eso"],
+  "etiquetas": ["hardware", "componentes", "3d", "test"],
+  "hecho_con": "Claude",
+  "fecha": "2026-11-11",
+  "estado": "listo"
+}
