@@ -1,6 +1,6 @@
 {
   "titulo": "Anatomía del ordenador",
-  "descripcion": "Gira en 3D las piezas de un ordenador, descubre para qué sirve cada una y ponte a prueba en dos niveles.",
+  "descripcion": "Gira en 3D las piezas de un ordenador, ábrelas para ver qué llevan dentro y ponte a prueba en dos retos con varios niveles.",
   "asignaturas": ["trdr"],
   "cursos": ["1eso"],
   "etiquetas": ["hardware", "componentes", "3d", "test"],
