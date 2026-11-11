@@ -1,0 +1,9 @@
+{
+  "titulo": "Dentro del ordenador",
+  "descripcion": "Estudia las piezas del ordenador, únelas en tres rondas (foto, nombre y definición) y consigue tres estrellas en todas.",
+  "asignaturas": ["trdr"],
+  "cursos": ["1eso"],
+  "etiquetas": ["hardware", "componentes", "emparejar"],
+  "fecha": "2026-11-11",
+  "estado": "listo"
+}
