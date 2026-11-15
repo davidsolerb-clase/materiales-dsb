@@ -71,7 +71,7 @@ function montar(app, ctx, nivel) {
   const zona3d = $(".taller-3d");
   const tarjeta = $(".ficha-paso");
   banco.montar(zona3d);
-  window.__taller = { banco, estado: () => e, validas: () => zonasDe(paso()).filter(libre) }; // para las pruebas
+  window.__taller = { banco, estado: () => e, validas: () => (paso() ? zonasDe(paso()).filter(libre) : []) }; // para las pruebas
   const m = new Mundo(banco);
 
   // Fotos de la bandeja.
@@ -180,6 +180,7 @@ function montar(app, ctx, nivel) {
     if (p.vistaTras) m.mira(p.vistaTras, 1200);
     if (espera?.then) {
       pinta();
+      banco.activa([]);
       espera.then(sigue);
     } else sigue();
   }
@@ -317,10 +318,7 @@ function montar(app, ctx, nivel) {
       aviso = e.i ? { tipo: "consejo", titular: "Sigues donde lo dejaste", texto: "Tu montaje estaba guardado en este navegador." } : null;
     }
     pinta();
-    const [pos, objetivo] = m.vista(paso().vista);
-    banco.camara.position.copy(pos);
-    banco.mandos.target.copy(objetivo);
-    banco.mandos.update();
+    m.mira(paso().vista, 0);
   }
 
   let guardada = null;

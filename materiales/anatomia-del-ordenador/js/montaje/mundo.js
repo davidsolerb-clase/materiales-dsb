@@ -303,6 +303,7 @@ export class Mundo {
 
   ponPlacaEnCaja() {
     const destino = V(B.x, B.y, B.z);
+    this.placaEnCaja = true;
     this.pc.attach(this.placa);
     this.b.mueve(this.placa, { a: destino, ms: 1300, arco: 18 });
   }
@@ -475,10 +476,11 @@ export class Mundo {
     this.b.sucio = true;
   }
 
-  // Dónde queda un punto de la caja visto desde la mesa.
+  // Dónde queda un punto de la caja visto desde la mesa (una vez acabado el giro, si está de pie).
   enMesa(p) {
-    this.pc.updateMatrixWorld(true);
-    return this.pc.localToWorld(p.clone());
+    if (!this.dePie) return p.clone();
+    const zb = C.ZB + C.G + C.PATAS;
+    return V(p.x, MESA + zb - p.z, zb + p.y - MESA);
   }
 
   // Cable de fuera: del puerto trasero hasta un aparato (o hasta el borde de la mesa).
@@ -596,13 +598,13 @@ export class Mundo {
   // ---------------------------------------------------------------- Vistas de cámara
 
   vista(nombre) {
-    const p = this.placa.getWorldPosition(V(0, 0, 0));
+    const p = this.placaEnCaja ? V(B.x, B.y, B.z) : ALFOMBRILLA.clone();
     const z = p.clone().add(V(-2, 1, -4.5));
     const en = (q) => this.enMesa(V(...q));
     const vistas = {
       general: [V(14, 96, 92), V(12, 2, 2)],
       caja: [V(2, 98, 46), V(1, 4, -1)],
-      trasera: [V(-74, 30, 30), V(-21, 8, 3)],
+      trasera: [V(-88, 36, 36), V(-21, 8, 5)],
       alfombrilla: [V(46, 78, 62), V(44, 1, 4)],
       zocalo: [z.clone().add(V(2, 31, 22)), z],
       disipador: [z.clone().add(V(8, 34, 26)), z.clone().add(V(1, 2, -2))],
@@ -624,7 +626,9 @@ export class Mundo {
 
   mira(nombre, ms) {
     const [pos, objetivo] = this.vista(nombre);
-    this.b.ver(pos, objetivo, ms);
+    // En pantallas estrechas la cámara se aleja para que quepa lo mismo.
+    const lejos = Math.max(1, 1.3 / this.b.camara.aspect);
+    this.b.ver(objetivo.clone().add(pos.sub(objetivo).multiplyScalar(lejos)), objetivo, ms);
   }
 }
 
