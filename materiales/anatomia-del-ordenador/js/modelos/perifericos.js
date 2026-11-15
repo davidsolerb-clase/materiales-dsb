@@ -1,4 +1,4 @@
-import { Modelo, M, THREE, caja, cilindro, copias, en, grupo, lamina, placa, rotulo, texto, mat } from "./kit.js";
+import { Modelo, M, THREE, caja, chip, cilindro, circuito, copias, en, grupo, lamina, placa, rotulo, texto, textura, mat } from "./kit.js";
 
 // Contorno de un rectángulo con las esquinas redondeadas, en el plano XZ.
 function redondeado(ancho, fondo, r, n = 8) {
@@ -29,7 +29,7 @@ export function monitor() {
   const W = 54, H = 32, F = 1.8, y0 = 12, zc = -1.5; // zc: centro de la carcasa
 
   // Pie plano.
-  m.pon(placa(redondeado(24, 18, 4), 0.9, trasera, { bisel: 0.25 }));
+  m.pon(placa(redondeado(24, 18, 4), 0.9, trasera, { bisel: 0.25 }), { id: "pie" });
 
   // Cuello con bisagra y pinza para cables.
   const cuello = grupo(
@@ -44,7 +44,7 @@ export function monitor() {
   const aro = cilindro(1.02, 0.25, acento, { lados: 24 });
   aro.rotation.z = Math.PI / 2;
   cuello.add(en(aro, 3.2, 22.6, -4.6), en(aro.clone(), -3.2, 22.6, -4.6));
-  m.pon(cuello);
+  m.pon(cuello, { id: "pie" });
 
   // Carcasa de la pantalla: marco fino y abajo un poco más grueso.
   const marco = grupo(en(caja(W, H, F, carcasa, 0.4), 0, y0 + H / 2, zc));
@@ -70,7 +70,7 @@ export function monitor() {
     texto(c, rotulo("VÍDEO", "HDMI"), w * 0.2, h / 2, { tam: h * 0.7, color: "#5cc8ff", alinear: "center" });
     texto(c, rotulo("CORRIENTE", "AC IN"), w * 0.8, h / 2, { tam: h * 0.7, color: "#aab3c5", alinear: "center" });
   }, { px: 512, detras: true }), 0, -1.45, -0.17));
-  marco.add(en(conectores, 9.5, 18.5, zc - 2.08));
+  m.pon(en(conectores, 9.5, 18.5, zc - 2.08), { id: "conectores", abre: [0, 0, -5] });
 
   // Rótulo trasero.
   marco.add(en(cartel(14, 2.2, (c, w, h) => {
@@ -91,10 +91,32 @@ export function monitor() {
   marco.add(en(caja(0.9, 0.12, 0.2, acento, 0.04), W / 2 - 3.4, y0 + 1.05, zc + F / 2));
 
   // Pantalla: la aplicación le pondrá su textura.
-  const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(51.6, 29), new THREE.MeshBasicMaterial({ color: 0x05070c }));
+  // De fábrica enseña un escritorio sencillo.
+  const escritorio = textura(512, 288, (c, w, h) => {
+    const g = c.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, "#27358f");
+    g.addColorStop(1, "#0f8f8a");
+    c.fillStyle = g;
+    c.fillRect(0, 0, w, h);
+    c.fillStyle = "#ffffff22";
+    c.fillRect(w * 0.08, h * 0.14, w * 0.42, h * 0.5);
+    c.fillStyle = "#ffffff38";
+    c.fillRect(w * 0.08, h * 0.14, w * 0.42, h * 0.07);
+    c.fillRect(w * 0.58, h * 0.3, w * 0.3, h * 0.42);
+    c.fillStyle = "#0a0e1acc";
+    c.fillRect(0, h * 0.91, w, h * 0.09);
+  });
+  const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(51.6, 29), new THREE.MeshBasicMaterial({ map: escritorio }));
   pantalla.name = "pantalla";
-  marco.add(en(pantalla, 0, y0 + 2.1 + 14.5, zc + F / 2 + 0.02));
   m.pon(marco);
+  m.pon(en(pantalla, 0, y0 + 2.1 + 14.5, zc + F / 2 + 0.02), { id: "pantalla", abre: [0, 0, 10] });
+
+  // Por dentro: la luz que ilumina la pantalla por detrás y la placa que la controla.
+  const luz = new THREE.Mesh(new THREE.PlaneGeometry(51, 28.4), new THREE.MeshStandardMaterial({ color: 0xf4f7ff, emissive: 0xdfe8ff, emissiveIntensity: 0.55, roughness: 0.6 }));
+  m.pon(en(luz, 0, y0 + 2.1 + 14.5, zc + F / 2 + 0.008), { id: "luz", abre: [0, 0, 6.2] });
+  const control = grupo(circuito(16, 11, { semilla: 17, grosor: 0.16 }), en(chip(2.6, 2.6, "VÍDEO"), -3, 0.16, 0.5), en(chip(1.6, 1.2, "LUZ"), 3.6, 0.16, -2));
+  control.rotation.x = Math.PI / 2;
+  m.pon(en(control, 5, 27, zc), { id: "placa", abre: [0, 0, 3.4] });
 
   m.raiz.userData.cable = [6.5, 18.8, zc - 2.4];
   return m;
@@ -157,16 +179,24 @@ export function teclado() {
     }
     texto(c, rotulo("TECLADO", "TECLA"), w * 0.96, h * 0.5, { tam: h * 0.3, color: "#8a93a5", alinear: "right", peso: 800 });
   }, { px: 384, transparente: true });
-  teclas.add(en(panel, (x0 + 18.5 + 2) * u, -0.29, (z0 + 0) * u));
+  teclas.add(en(panel, (x0 + 18.5 + 2) * u, -0.17, (z0 + 0) * u));
   const pendiente = Math.atan(0.8 / D);
   teclas.rotation.x = pendiente;
-  m.pon(en(teclas, 0, 1.3 + 0.3, 0));
+  m.pon(en(teclas, 0, 1.78, 0), { id: "teclas", abre: [0, 4.4, 0] });
+
+  // Debajo de las teclas: una lámina con un contacto para cada una, y el chip que las lee.
+  const membrana = circuito(W - 2.4, D - 2.2, { color: "#1d6b5a", pista: "#58c9a6", semilla: 8, grosor: 0.06, densidad: 1.3 });
+  membrana.rotation.x = pendiente;
+  m.pon(en(membrana, 0, 1.36, 0), { id: "membrana", abre: [0, 2, 0] });
+  const lector = chip(2.6, 1.5, "CONTROL", { alto: 0.07 });
+  lector.rotation.x = pendiente;
+  m.pon(en(lector, 17.4, 1.71, -5), { id: "controlador", abre: [0, 2.8, 0] });
 
   // Patas traseras y salida del cable.
   for (const x of [-18, 18]) m.pon(en(caja(4, 0.5, 1.2, M.negroMate, 0.15), x, 0.05, -D / 2 + 1));
   const salida = cilindro(0.35, 1.2, M.negroMate, { lados: 16, radioAbajo: 0.45 });
   salida.rotation.x = -Math.PI / 2;
-  m.pon(en(salida, 0, 1, -D / 2 - 0.4));
+  m.pon(en(salida, 0, 1, -D / 2 - 0.4), { id: "cable", abre: [0, 0, -2.6] });
   m.pon(en(caja(5, 0.06, 0.5, acento, 0.02), 0, 1.75, -D / 2 + 0.1));
 
   m.raiz.userData.cable = [0, 1, -D / 2 - 1];
@@ -194,7 +224,7 @@ export function raton() {
     return geo;
   };
   const cupula = new THREE.Mesh(forma(new THREE.SphereGeometry(1, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2)), cuerpo);
-  m.pon(cupula);
+  m.pon(cupula, { id: "carcasa", abre: [0, 5, 0] });
 
   // Base con una línea de color.
   const contorno = [];
@@ -205,12 +235,12 @@ export function raton() {
   m.pon(placa(contorno, y0, M.negroMate, { bisel: 0.08 }));
   const linea = placa(contorno, 0.08, acento, { bisel: 0 });
   linea.scale.set(1.012, 1, 1.006);
-  m.pon(en(linea, 0, y0 - 0.06, 0));
+  m.pon(en(linea, 0, y0 - 0.1, 0));
 
   // Dos botones delante, separados por una ranura.
   for (const [lado, phi0] of [[-1, Math.PI * 1.5], [1, Math.PI]]) {
     const b = new THREE.Mesh(forma(new THREE.SphereGeometry(1, 16, 10, phi0, Math.PI / 2, 0, 1.25), 1.012), botones);
-    m.pon(en(b, lado * 0.07, 0, 0));
+    m.pon(en(b, lado * 0.07, 0, 0), { id: "botones", abre: [0, 7.4, -1.2] });
   }
 
   // Rueda en la ranura: buscamos la altura de la superficie.
@@ -220,13 +250,18 @@ export function raton() {
   const yr = rayo.intersectObject(cupula)[0]?.point.y ?? Hc;
   const rueda = grupo(cilindro(0.55, 0.42, M.negroMate, { lados: 24 }), cilindro(0.57, 0.12, acento, { lados: 24 }));
   rueda.rotation.z = Math.PI / 2;
-  m.pon(en(rueda, 0, yr - 0.15, zr));
-  m.pon(en(caja(0.7, 0.5, 1.6, M.negro, 0.15), 0, yr - 0.15, zr));
+  m.pon(en(rueda, 0, yr - 0.15, zr), { id: "rueda", abre: [0, 3, 0] });
+  m.pon(en(caja(0.7, 0.5, 1.6, M.negro, 0.15), 0, yr - 0.15, zr), { id: "carcasa", abre: [0, 5, 0] });
+
+  // Por dentro: la placa y el sensor que mira la mesa.
+  m.pon(en(circuito(4.4, 8, { semilla: 4, grosor: 0.1 }), 0, y0 + 0.08, 0.3), { id: "placa", abre: [0, 0.9, 0] });
+  const ojo = cilindro(0.3, 0.2, new THREE.MeshStandardMaterial({ color: 0xff3b3b, emissive: 0xff2020, emissiveIntensity: 1.4 }), { lados: 20 });
+  m.pon(en(grupo(caja(1.4, 0.5, 1.4, M.negro, 0.1), en(ojo, 0, 0.28, 0)), 0, y0 + 0.4, 0.9), { id: "sensor", abre: [0, 2.4, 0] });
 
   // Salida del cable, delante.
   const salida = cilindro(0.22, 0.9, M.negroMate, { lados: 16, radioAbajo: 0.3 });
   salida.rotation.x = Math.PI / 2;
-  m.pon(en(salida, 0, 1.1, -L - 0.2));
+  m.pon(en(salida, 0, 1.1, -L - 0.2), { id: "cable", abre: [0, 0, -2] });
 
   m.raiz.userData.cable = [0, 1.1, -L - 0.65];
   return m;

@@ -6,7 +6,7 @@ Un ordenador en 3D para aprender sus piezas: verlas, abrirlas, montarlo y, más 
 
 | Taller | Qué hace el alumno | Niveles |
 | --- | --- | --- |
-| 1. Conoce | Gira y abre las piezas. Dos retos de preguntas. | 3 y 2 |
+| 1. Conoce | Gira y abre las trece piezas, periféricos incluidos. Dos retos de preguntas. | 3 y 2 |
 | 2. Monta | Coloca las piezas en la caja, las atornilla y conecta los cables. Al acabar, elige color, luces y pegatina. | Lo esencial, con guía, sin guía y por tu cuenta |
 | 3. Enciende | Quita una pieza o un cable, enciende y ve qué pasa. La corriente y los datos se ven correr por los cables. | Experimenta, predice y el viaje de un dato |
 | 4. Repara | Recibe un ordenador con un síntoma y busca la avería. | Algo suelto, pieza rota y doble avería |
@@ -32,7 +32,7 @@ Para probar un paso del montaje sin hacer los anteriores, abre el taller con `?p
 ## Lo siguiente
 
 1. **Probarlo en el aula.** En los ordenadores y tabletas del centro, con un grupo. De ahí saldrá qué textos y qué niveles hay que ajustar.
-2. **Más piezas en el atlas.** Monitor, teclado y ratón ya están dibujados (`js/modelos/perifericos.js`); falta darles partes que se abran, ficha y miniaturas. Después: SSD M.2, wifi y altavoces.
+2. **Más piezas en el atlas.** Ya están el monitor, el teclado y el ratón. Faltan SSD M.2, wifi y altavoces.
 3. **Más averías y más viajes.** Son datos: `AVERIAS` en `sistema.js` y `VIAJES` en `enciende.js`.
 4. **BIOS con más ajustes.** Ahora solo tiene el orden de arranque. Se puede añadir la velocidad de la memoria.
 5. **Desmontar.** El montaje al revés.
