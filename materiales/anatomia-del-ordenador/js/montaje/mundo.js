@@ -325,7 +325,7 @@ export class Mundo {
   // ---------------------------------------------------------------- Cables
 
   // Tubo por unos puntos más su clavija. `padre` es this.pc salvo indicación.
-  cable(id, puntos, { material = NARANJA, radio = 0.4, clavija, padre = this.pc } = {}) {
+  cable(id, puntos, { material = NARANJA, radio = 0.4, clavija, padre = this.pc, clase, invertido = false } = {}) {
     const g = grupo(tubo(puntos.map((p) => (p.isVector3 ? p.toArray() : p)), radio, material, { tramos: 90 }));
     if (clavija) {
       const [w, h, d] = clavija.tam;
@@ -344,8 +344,55 @@ export class Mundo {
       geo.setDrawRange(0, Math.ceil((total * suave(k)) / 6) * 6);
       if (g.children[1]) g.children[1].visible = k > 0.85;
     });
+    // Por dónde va y qué lleva, para dibujar las flechas cuando el ordenador está encendido.
+    g.userData.curva = new THREE.CatmullRomCurve3(puntos.map((p) => (p.isVector3 ? p.clone() : V(...p))));
+    g.userData.radio = radio;
+    g.userData.clase = clase ?? (material === AZUL ? "datos" : material === NARANJA ? "corriente" : null);
+    g.userData.invertido = invertido;
     this.cables[id] = g;
     return g;
+  }
+
+  // Flechas que recorren los cables: corriente (claras sobre naranja) y datos (sobre azul).
+  // `cuales` es true (todos), false (ninguno) o una función (id, clase) => sí o no.
+  flujo(cuales) {
+    let alguno = false;
+    for (const [id, g] of Object.entries(this.cables)) {
+      const u = g.userData;
+      const si = !!cuales && g.visible && !!u.clase && (cuales === true || cuales(id, u.clase));
+      if (si && !u.flechas) {
+        const n = Math.max(2, Math.round(u.curva.getLength() / 5));
+        const geo = new THREE.ConeGeometry(u.radio * 1.9 + 0.12, u.radio * 3.4 + 0.5, 10);
+        u.flechas = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ color: u.clase === "corriente" ? 0xfff3b0 : 0xe2f6ff }), n);
+        u.flechas.frustumCulled = false;
+        g.add(u.flechas);
+      }
+      if (u.flechas) u.flechas.visible = si;
+      alguno ||= si;
+    }
+    const o = new THREE.Object3D();
+    const arriba = V(0, 1, 0);
+    this.b.alPintar = alguno
+      ? (t) => {
+          for (const g of Object.values(this.cables)) {
+            const u = g.userData;
+            if (!u.flechas?.visible) continue;
+            const n = u.flechas.count;
+            const paso = (t * 9) / u.curva.getLength();
+            for (let i = 0; i < n; i++) {
+              let k = (i / n + paso) % 1;
+              if (u.invertido) k = 1 - k;
+              o.position.copy(u.curva.getPointAt(k));
+              const tan = u.curva.getTangentAt(k);
+              o.quaternion.setFromUnitVectors(arriba, u.invertido ? tan.negate() : tan);
+              o.updateMatrix();
+              u.flechas.setMatrixAt(i, o.matrix);
+            }
+            u.flechas.instanceMatrix.needsUpdate = true;
+          }
+        }
+      : null;
+    this.b.sucio = true;
   }
 
   enPlacaMundo(id, y) {
@@ -357,7 +404,7 @@ export class Mundo {
     const [zx, zz] = EN_PLACA.zocalo;
     const [x, z] = EN_PLACA.cpufan;
     this.cable("cpufan", [[zx + 3.2, 4.3, zz - 3.4], [zx + 4.6, 3.8, zz - 4.6], [x + 0.3, 2.6, z + 0.4], [x, 1, z]], {
-      material: NEGRO, radio: 0.13, padre: this.placa, clavija: { pos: V(x, 0.95, z), tam: [1.2, 0.6, 0.5] },
+      material: NEGRO, radio: 0.13, padre: this.placa, clase: "corriente", clavija: { pos: V(x, 0.95, z), tam: [1.2, 0.6, 0.5] },
     });
   }
 
@@ -419,14 +466,14 @@ export class Mundo {
   cableVentiladorCaja(conector = "sysfan1") {
     const s = this.enPlacaMundo(conector, 0.4);
     this.cable("sysfan", [[C.XR + 2.4, VENTILADOR.y - 5.6, VENTILADOR.z - 4], [C.XR + 2.6, 4.5, VENTILADOR.z - 2.5], [s.x - 0.4, 2.6, s.z - 0.6], [s.x, s.y + 0.7, s.z]], {
-      material: NEGRO, radio: 0.13, clavija: { pos: s.clone().add(V(0, 0.55, 0)), tam: [1.2, 0.6, 0.5] },
+      material: NEGRO, radio: 0.13, clase: "corriente", invertido: true, clavija: { pos: s.clone().add(V(0, 0.55, 0)), tam: [1.2, 0.6, 0.5] },
     });
   }
 
   cablePanel() {
     const s = this.enPlacaMundo("pines", 0.7);
     this.cable("panel", [[BOTON.x, BOTON.y, C.ZT + 0.3], [17.6, 2, -19.5], [20.55, 0.4, -17], [20.6, 0.4, 16], [10, 0.4, 17.6], [1, 0.5, 14], [s.x, 0.9, s.z + 3], [s.x, s.y + 1, s.z + 0.2], [s.x, s.y + 0.5, s.z]], {
-      material: NEGRO, radio: 0.16, clavija: { pos: s.clone().add(V(0, 0.2, 0)), tam: [2.6, 0.8, 0.7] },
+      material: NEGRO, radio: 0.16, clase: "datos", clavija: { pos: s.clone().add(V(0, 0.2, 0)), tam: [2.6, 0.8, 0.7] },
     });
   }
 
@@ -484,7 +531,7 @@ export class Mundo {
   }
 
   // Cable de fuera: del puerto trasero hasta un aparato (o hasta el borde de la mesa).
-  cableFuera(id, puerto, { ranura = 0, hasta, material = NEGRO, radio = 0.28, tam = [1.8, 0.7, 1.5] } = {}) {
+  cableFuera(id, puerto, { ranura = 0, hasta, material = NEGRO, radio = 0.28, tam = [1.8, 0.7, 1.5], clase = "datos", invertido = false } = {}) {
     const p = PUERTO[puerto].clone();
     if (puerto.startsWith("usb")) p.y += ranura ? 0.38 : -0.37;
     const a = this.enMesa(p);
@@ -492,7 +539,7 @@ export class Mundo {
     const fin = hasta || V(-108, MESA + 0.4, a.z - 30);
     const suelo = MESA + radio + 0.05;
     const puntos = [fuera, fuera.clone().add(V(-4, -1.5, 0)), V(fuera.x - 9, suelo, fuera.z + (fin.z - fuera.z) * 0.25), V((fuera.x + fin.x) / 2 - 4, suelo, (fuera.z + fin.z) / 2), fin.clone().add(V(4, 0, 0)).setY(Math.max(suelo, fin.y - 1)), fin];
-    const g = this.cable(id, puntos, { material, radio, padre: this.mesa });
+    const g = this.cable(id, puntos, { material, radio, padre: this.mesa, clase, invertido });
     const c = caja(2.2, tam[1], tam[2], material === NEGRO ? M.negro : material, 0.1);
     c.position.copy(a).add(V(-1.1, 0, 0));
     if (puerto === "video-grafica") c.rotation.x = Math.PI / 2;
@@ -505,15 +552,15 @@ export class Mundo {
     const per = this.perifericos;
     const punta = (g) => g.localToWorld(V(...g.userData.cable));
     if (que === "monitor") this.cableFuera("monitor", puerto, { hasta: punta(per.monitor), radio: 0.32, tam: [0, 0.6, 1.6] });
-    if (que === "teclado") this.cableFuera("teclado", puerto, { ranura, hasta: punta(per.teclado), radio: 0.2, tam: [0, 0.55, 1.3] });
-    if (que === "raton") this.cableFuera("raton", puerto, { ranura, hasta: punta(per.raton), radio: 0.16, tam: [0, 0.55, 1.3] });
+    if (que === "teclado") this.cableFuera("teclado", puerto, { ranura, hasta: punta(per.teclado), radio: 0.2, tam: [0, 0.55, 1.3], invertido: true });
+    if (que === "raton") this.cableFuera("raton", puerto, { ranura, hasta: punta(per.raton), radio: 0.16, tam: [0, 0.55, 1.3], invertido: true });
     if (que === "red") this.cableFuera("red", puerto, { material: mat(0xf2c14e, { rug: 0.5 }), radio: 0.26, tam: [0, 1.2, 1.4] });
-    if (que === "corriente") this.cableFuera("corriente", puerto, { radio: 0.42, tam: [0, 2.2, 2.9] });
+    if (que === "corriente") this.cableFuera("corriente", puerto, { radio: 0.42, tam: [0, 2.2, 2.9], clase: "corriente", invertido: true });
   }
 
-  interruptor() {
+  interruptor(encendido = true) {
     const tecla = this.pieza("fuente").userData.partes.toma[0].children[3];
-    tecla.rotation.x = 0.2;
+    tecla.rotation.x = encendido ? 0.2 : -0.2;
     this.b.sucio = true;
   }
 
@@ -525,6 +572,7 @@ export class Mundo {
     const piloto = this.perifericos.monitor.getObjectByName("piloto");
     if (piloto) piloto.material.emissive?.set(0x5cc8ff);
     b.encendido = true;
+    this.flujo(true);
     const lineas = ["Procesador: 6 núcleos", "Memoria RAM: 32 GB", "Tarjeta gráfica", "Disco SSD: 500 GB", "Disco duro: 1 TB", "Teclado y ratón"];
     const cuadro = (n) => this.pintaPantalla((c, w, h) => {
       c.fillStyle = "#070b18";
@@ -617,6 +665,7 @@ export class Mundo {
       cables: [V(8, 62, 50), V(2, 3, 2)],
       datos: [V(14, 34, 30), V(7, 1.5, 4)],
       dePie: [V(-26, 54, 156), V(-24, 17, 24)],
+      puesto: [V(-18, 44, 128), V(-18, 15, 24)],
       detras: [V(-96, 46, 92), en([C.XR - 12, 6, -6])],
       enchufe: [V(-78, 24, 74), en([C.XR, 6, 14])],
       arriba: [V(34, 66, 84), en([BOTON.x, BOTON.y, C.ZT])],

@@ -430,3 +430,40 @@ dialog form { margin-top: 18px; }
 .profe th, .profe td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linea); }
 .profe th { font-size: .85rem; color: var(--suave); font-weight: 600; }
 .profe #codigo { font: 700 1.3rem ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ---------- Talleres «Enciéndelo» y «Repara» ---------- */
+
+.taller.puesto { grid-template-columns: 250px minmax(0, 1fr) 380px; }
+.elementos { display: grid; gap: 5px; }
+.elemento {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; width: 100%; text-align: left;
+  padding: 7px 10px; border: 2px solid var(--linea); border-radius: 10px; background: var(--capa-2);
+  font-size: .88rem; font-weight: 600; line-height: 1.2; touch-action: manipulation;
+}
+.elemento:hover { border-color: var(--suave); }
+.elemento small { flex: none; font-size: .75rem; font-weight: 700; color: var(--suave); }
+.elemento[aria-pressed="true"] { border-color: var(--lima); background: color-mix(in srgb, var(--lima) 14%, var(--capa-2)); }
+.elemento[aria-pressed="true"] small { color: var(--lima); }
+.elemento.bien small { color: var(--suave); }
+.elemento.arreglado small, .elemento.cambiado small { color: var(--bien); }
+.ficha-paso [data-boton] { width: 100%; margin-top: 14px; }
+.ficha-paso [data-boton]:disabled { opacity: .55; cursor: default; }
+.ficha-paso [data-todo] { margin-top: 12px; }
+.ficha-paso .veredicto p + p { margin-top: 4px; }
+.ficha-paso .opciones { margin-top: 14px; }
+.ficha-paso .veredicto .boton { margin-top: 10px; }
+.descubiertas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 16px; }
+.descubiertas li { padding: 6px 9px; border-radius: 8px; border: 1.5px dashed var(--linea); font-size: .78rem; font-weight: 600; line-height: 1.2; color: var(--linea); }
+.descubiertas li.si { border-style: solid; border-color: var(--bien); color: var(--texto); background: color-mix(in srgb, var(--bien) 10%, transparent); }
+.queja { margin: 4px 0 2px; padding: 12px 14px; border-radius: 12px; background: var(--capa-2); border-left: 4px solid var(--lima); font-size: 1.05rem; line-height: 1.4; font-style: italic; }
+.revisa { margin-top: 14px; padding: 12px; border: 2px solid var(--lima); border-radius: 12px; display: grid; gap: 8px; }
+.revisa .titular { font-family: var(--titulos); font-weight: 700; font-size: 1.1rem; }
+.revisa .boton { min-height: 42px; font-size: .92rem; }
+.puntos-ronda { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.puntos-ronda li { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--linea); }
+.puntos-ronda .hecha { background: var(--suave); border-color: var(--suave); }
+.puntos-ronda .ahora { border-color: var(--lima); background: var(--lima); }
+@media (max-width: 1080px) {
+  .taller.puesto { grid-template-columns: 1fr; }
+  .elementos { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+}

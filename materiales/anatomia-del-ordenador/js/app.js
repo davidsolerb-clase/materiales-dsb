@@ -9,7 +9,7 @@
 //   partida.js     lo común a las actividades de preguntas
 //   reto.js        actividad «¿Qué pieza es?»
 //   dentro.js      actividad «Por dentro»
-//   montaje/       actividad «Taller de montaje»
+//   montaje/       talleres «Monta», «Enciéndelo» y «Repara»
 //
 // Para añadir una actividad: crea un módulo como reto.js y añádelo a ACTIVIDADES.
 // Aparece sola en el inicio y en la dirección #/jugar/<id>/<nivel>.
@@ -21,9 +21,11 @@ import { progreso, marcarVista, borrarProgreso, estrellasDe } from "./progreso.j
 import { reto } from "./reto.js";
 import { dentro } from "./dentro.js";
 import { montaje } from "./montaje/montaje.js";
+import { enciende } from "./montaje/enciende.js";
+import { repara } from "./montaje/repara.js";
 import { carne, leeCodigo } from "./carne.js";
 
-const ACTIVIDADES = [reto, dentro, montaje];
+const ACTIVIDADES = [reto, dentro, montaje, enciende, repara];
 
 const app = document.getElementById("app");
 const visor = new Visor();
@@ -71,10 +73,10 @@ function inicio() {
     <section class="portada">
       <div class="portada-texto">
         <h1 tabindex="-1">Mira un ordenador <em>por dentro</em></h1>
-        <p class="entrada">Gira cada pieza en 3D, ábrela para ver qué lleva dentro y después ponte a prueba.</p>
+        <p class="entrada">Gira cada pieza en 3D y ábrela. Después monta el ordenador, enciéndelo y repara sus averías.</p>
         <div class="fila">
           <a class="boton principal" href="#/atlas/${PIEZAS[0].id}">Explorar las piezas</a>
-          <a class="boton" href="#actividades">Ir a los retos</a>
+          <a class="boton" href="#actividades">Ir a los retos y talleres</a>
         </div>
       </div>
       <div class="portada-3d">
@@ -224,11 +226,11 @@ function profe() {
     </header>
     <div class="profe">
       <h1 tabindex="-1">Leer un código de resultado</h1>
-      <p class="entrada">Cada alumno tiene en la portada un código de seis letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
+      <p class="entrada">Cada alumno tiene en la portada un código de ocho letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
       <form class="escribir" autocomplete="off">
         <label for="codigo">Código del alumno</label>
         <div class="fila">
-          <input id="codigo" type="text" maxlength="9" placeholder="ABC-DEF" autocapitalize="characters" spellcheck="false">
+          <input id="codigo" type="text" maxlength="10" placeholder="ABCD-EFGH" autocapitalize="characters" spellcheck="false">
           <button class="boton principal">Leer</button>
         </div>
       </form>
@@ -245,7 +247,7 @@ function profe() {
     ev.preventDefault();
     const r = leeCodigo(app.querySelector("#codigo").value);
     if (!r) {
-      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las seis letras.</p>`;
+      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las ocho letras.</p>`;
       return;
     }
     const total = r.niveles.reduce((a, n) => a + n.estrellas, 0);

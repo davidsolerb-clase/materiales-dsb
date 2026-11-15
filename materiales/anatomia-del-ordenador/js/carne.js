@@ -1,7 +1,7 @@
 // Carné de técnico y código de resultado.
 //
 // El carné resume el progreso: piezas vistas y estrellas de cada nivel.
-// El código es ese mismo resumen en seis letras, para que el alumno lo
+// El código es ese mismo resumen en ocho letras, para que el alumno lo
 // entregue (en un papel o en el aula virtual) y el docente lo lea en #/profe.
 // No lleva nombres ni datos personales: solo cuenta estrellas.
 
@@ -11,13 +11,14 @@ import { progreso, estrellasDe } from "./progreso.js";
 // Niveles que cuentan, en un orden que no debe cambiar: el código depende de él.
 // Para añadir niveles, ponlos al final y sube VERSION.
 const VERSION = 1;
-const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2"];
+const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2", "enciende-1", "enciende-2", "repara-1", "repara-2"];
+const LARGO = 8; // letras del código: 5 bits cada una
 const LETRAS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin I, O, 0 ni 1, que se confunden
 const RANGOS = [
   [0, "Aprendiz"],
-  [4, "Ayudante de taller"],
-  [9, "Montador"],
-  [14, "Técnico"],
+  [6, "Ayudante de taller"],
+  [14, "Montador"],
+  [23, "Técnico"],
   [NIVELES.length * 3, "Maestro técnico"],
 ];
 
@@ -42,11 +43,11 @@ function escribe(vistas, estrellas) {
   for (const e of estrellas) n = (n << 2n) | BigInt(e);
   n = (n << 9n) | BigInt(resumen(n));
   let t = "";
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < LARGO; i++) {
     t = LETRAS[Number(n & 31n)] + t;
     n >>= 5n;
   }
-  return `${t.slice(0, 3)}-${t.slice(3)}`;
+  return `${t.slice(0, LARGO / 2)}-${t.slice(LARGO / 2)}`;
 }
 
 function resumen(n) {
@@ -57,8 +58,8 @@ function resumen(n) {
 
 // Devuelve { vistas, niveles: [{ id, estrellas }] } o null si el código no vale.
 export function leeCodigo(texto) {
-  const limpio = texto.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/[IL1]/g, "L").replace(/[O0]/g, "Q");
-  if (limpio.length !== 6) return null;
+  const limpio = texto.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (limpio.length !== LARGO) return null;
   let n = 0n;
   for (const c of limpio) {
     const v = LETRAS.indexOf(c);

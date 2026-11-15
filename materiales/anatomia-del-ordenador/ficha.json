@@ -1,9 +1,9 @@
 {
   "titulo": "Anatomía del ordenador",
-  "descripcion": "Gira en 3D las piezas de un ordenador, ábrelas para ver qué llevan dentro, ponte a prueba y monta el ordenador entero paso a paso.",
+  "descripcion": "Gira en 3D las piezas de un ordenador y ábrelas. Después, monta el ordenador paso a paso, enciéndelo para ver qué pasa si falta algo y repara averías.",
   "asignaturas": ["trdr"],
   "cursos": ["1eso"],
-  "etiquetas": ["hardware", "componentes", "3d", "test", "montaje"],
+  "etiquetas": ["hardware", "componentes", "3d", "test", "montaje", "averías"],
   "hecho_con": "Claude",
   "fecha": "2026-11-11",
   "estado": "listo"

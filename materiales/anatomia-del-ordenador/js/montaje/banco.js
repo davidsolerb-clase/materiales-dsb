@@ -264,6 +264,10 @@ export class Banco {
       }
       this.sucio = this.sombras = true;
     }
+    if (this.alPintar) {
+      this.alPintar(performance.now() / 1000);
+      this.sucio = true;
+    }
     if (this.encendido && !quieto.matches) {
       for (const o of this.giratorios) o.rotation.y -= o.userData.gira * Math.PI * 2 * dt * 2.2;
       this.sucio = true;
