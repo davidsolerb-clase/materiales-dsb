@@ -4,6 +4,7 @@
 //   Con guía       todos los pasos; el sitio de cada pieza se ilumina
 //   Sin guía       se marcan todos los huecos posibles y hay que elegir
 //   Por tu cuenta  sin pasos: el alumno decide el orden
+//   Desmonta       al revés: hay que vaciar la caja (está en desmonta.js)
 //
 // banco.js    el lienzo 3D, la cámara y los sitios que se pueden tocar
 // caja.js     el modelo de la caja
@@ -16,6 +17,7 @@ import { Banco } from "./banco.js";
 import { Mundo, muestra, ACABADOS } from "./mundo.js";
 import { BLOQUES, PIEZAS, PASOS, ZONAS, BLOQUE_DE_ZONA, FIGURAS, ESENCIALES, TRAS } from "./pasos.js";
 import { anotarIntento } from "../progreso.js";
+import { desmonta } from "./desmonta.js";
 
 const CLAVE = "anatomia-montaje-v1-";
 const NO_VA = "Ahí no va. Fíjate en la forma y en el tamaño del hueco.";
@@ -44,11 +46,13 @@ export const montaje = {
     { id: "1", etiqueta: "Nivel 2", nombre: "Con guía", texto: "Todos los pasos. El sitio de cada pieza se ilumina y se explica el porqué." },
     { id: "2", etiqueta: "Nivel 3", nombre: "Sin guía", texto: "Se marcan todos los huecos y eliges tú. Cada fallo y cada pista cuentan." },
     { id: "3", etiqueta: "Nivel 4", nombre: "Por tu cuenta", texto: "Sin pasos. Decides tú el orden y el taller te avisa si te adelantas." },
+    { id: "4", etiqueta: "Nivel 5", nombre: "Desmonta", texto: "Al revés: el ordenador está montado y hay que vaciar la caja sin romper nada." },
   ],
   montar,
 };
 
 function montar(app, ctx, nivel) {
+  if (nivel.id === "4") return desmonta(app, ctx, nivel, montaje);
   const facil = nivel.id === "0";
   const guiado = facil || nivel.id === "1";
   const libreM = nivel.id === "3"; // sin pasos

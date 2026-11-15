@@ -36,6 +36,7 @@ export const ELEMENTOS = [
   { id: "teclado", nombre: "Teclado", grupo: "Por fuera", sin: "Al arrancar, el ordenador comprueba que hay un teclado. Si no lo encuentra, se queja." },
   { id: "raton", nombre: "Ratón", grupo: "Por fuera", sin: "El ordenador arranca sin ratón, pero no podrás mover el puntero." },
   { id: "red", nombre: "Cable de red", grupo: "Por fuera", sin: "El cable de red no hace falta para arrancar. Sin él, no hay internet." },
+  { id: "altavoces", nombre: "Altavoces", grupo: "Por fuera", sin: "Los altavoces no hacen falta para arrancar. Sin ellos, el ordenador funciona en silencio." },
 
   {
     id: "orden", nombre: "Orden de arranque", grupo: "Ajustes", verbo: ["Cambiar", "Arreglar"],
@@ -82,13 +83,14 @@ export function diagnostico(e) {
     hay(mal("ssd", "ssd-corriente", "ssd-datos", "orden"), "sin-sistema") ||
     hay(mal("teclado"), "sin-teclado");
   if (fallo) return fallo;
-  const causas = mal("ram1", "ram2", "disco", "disco-corriente", "disco-datos", "raton", "red");
+  const causas = mal("ram1", "ram2", "disco", "disco-corriente", "disco-datos", "raton", "red", "altavoces");
   const avisos = [];
   const memoria = 32 - mal("ram1", "ram2").length * 16;
   if (memoria < 32) avisos.push("Solo hay 16 GB de memoria");
   if (mal("disco", "disco-corriente", "disco-datos").length) avisos.push("No aparece el disco de datos");
   if (mal("raton").length) avisos.push("No hay ratón");
   if (mal("red").length) avisos.push("Sin internet");
+  if (mal("altavoces").length) avisos.push("No hay sonido");
   return { sintoma: causas.length ? "a-medias" : "bien", causas, avisos, memoria };
 }
 

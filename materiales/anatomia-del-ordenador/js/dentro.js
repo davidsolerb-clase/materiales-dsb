@@ -20,7 +20,7 @@ export const dentro = {
   ],
   montar(app, ctx, nivel) {
     const esc = escenario();
-    const preguntas = barajar(PIEZAS).map((p) => {
+    const preguntas = barajar(PIEZAS).slice(0, 12).map((p) => {
       const parte = barajar(p.partes)[0];
       return {
         tono: p.color,

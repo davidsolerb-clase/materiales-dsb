@@ -50,6 +50,7 @@ export const PIEZAS = [
   { id: "teclado", nombre: "Teclado", muestra: "teclado", bloque: 5 },
   { id: "raton", nombre: "Ratón", muestra: "raton", bloque: 5 },
   { id: "cred", nombre: "Cable de red", muestra: "cred", bloque: 5, clase: "datos" },
+  { id: "caltavoces", nombre: "Altavoces", muestra: "altavoces", bloque: 5 },
   { id: "ccorriente", nombre: "Cable de corriente (al enchufe)", muestra: "ccorriente", bloque: 5, clase: "corriente" },
 ];
 
@@ -68,6 +69,7 @@ export const ZONAS = {
   "video-grafica": { bloque: 5, tras: "levanta" }, "video-placa": { bloque: 5, tras: "levanta" },
   "usb-a": { bloque: 5, cap: 2, tras: "levanta" }, "usb-b": { bloque: 5, cap: 2, tras: "levanta" }, "usb-c": { bloque: 5, cap: 2, tras: "levanta" },
   red: { bloque: 5, tras: "levanta" }, toma: { bloque: 5, tras: "levanta" },
+  "audio-verde": { bloque: 5, tras: "levanta" }, "audio-rosa": { bloque: 5, tras: "levanta" }, "audio-azul": { bloque: 5, tras: "levanta" },
 };
 export const BLOQUE_DE_ZONA = (id, bloque) => ZONAS[id] && (ZONAS[id].bloque === bloque || (bloque === 3 && id === "bandeja") || (bloque === 4 && id.startsWith("sysfan")));
 
@@ -373,6 +375,17 @@ export const PASOS = [
     hecho: (m, e, zona) => m.conecta("red", zona),
   },
   {
+    id: "altavoces", bloque: 5, tipo: "pon", pieza: "caltavoces", zonas: ["audio-verde"], vista: "sonido",
+    trampas: {
+      "audio-rosa": "Ese conector rosa es el del micrófono: por ahí el sonido entra en el ordenador, no sale.",
+      "audio-azul": "Ese conector azul es una entrada: sirve para grabar el sonido de otro aparato. Los altavoces van en el verde.",
+    },
+    titulo: "Conecta los altavoces",
+    texto: "Los conectores de sonido son redondos y van por colores. La clavija de los altavoces es verde: va en el conector <b>verde</b>.",
+    porque: "Los colores evitan confusiones: verde para lo que suena, rosa para el micrófono.",
+    hecho: (m, e, zona) => m.conecta("altavoces", zona),
+  },
+  {
     id: "corriente", bloque: 5, tipo: "pon", pieza: "ccorriente", zonas: ["toma"], vista: "enchufe",
     titulo: "Enchufa el ordenador",
     texto: "Conecta el cable de corriente en la toma de la fuente de alimentación.",
@@ -413,8 +426,8 @@ export const TRAS = {
   "datos1-placa": ["tornillos-placa", "ssd", "disco"], "datos1-disco": ["datos1-placa"], "datos2-placa": ["datos1-disco"], "datos2-disco": ["datos2-placa"],
   "vent-caja": ["tornillos-placa"], cpanel: ["tornillos-placa"],
   "pon-panel": DENTRO, "cierra-panel": ["pon-panel"], levanta: ["cierra-panel"],
-  monitor: ["levanta"], teclado: ["levanta"], raton: ["levanta"], red: ["levanta"], corriente: ["levanta"],
-  interruptor: ["corriente"], enciende: ["interruptor", "monitor", "teclado", "raton", "red"],
+  monitor: ["levanta"], teclado: ["levanta"], raton: ["levanta"], red: ["levanta"], altavoces: ["levanta"], corriente: ["levanta"],
+  interruptor: ["corriente"], enciende: ["interruptor", "monitor", "teclado", "raton", "red", "altavoces"],
 };
 
 // Dibujos de orientación: cómo está girada la pieza frente a su hueco.

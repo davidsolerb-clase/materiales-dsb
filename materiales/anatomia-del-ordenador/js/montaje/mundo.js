@@ -8,6 +8,7 @@
 import { THREE, M, mat, caja, cilindro, en, grupo, lamina, texto, textura, tubo } from "../modelos/kit.js";
 import { construir } from "../modelos/index.js";
 import { monitor, teclado, raton } from "../modelos/perifericos.js";
+import { altavoces } from "../modelos/tarjetas.js";
 import { torre, tornilloHacia, C, B, AGUJEROS, VENTANA, VENTILADOR, BOTON } from "./caja.js";
 import { suave } from "./banco.js";
 
@@ -44,6 +45,7 @@ const PUERTO = {
   "video-grafica": V(X_PUERTOS - 0.2, 9.29, -2.45), "video-placa": V(X_PUERTOS, 1.8, B.z - 7.5),
   "usb-a": V(X_PUERTOS, 1.86, B.z - 10.2), "usb-b": V(X_PUERTOS, 1.86, B.z - 4.6), "usb-c": V(X_PUERTOS, 1.86, B.z - 1.9),
   red: V(X_PUERTOS, 3.44, B.z - 1.9),
+  "audio-azul": V(X_PUERTOS, 1.59, B.z + 1), "audio-verde": V(X_PUERTOS, 2.64, B.z + 1), "audio-rosa": V(X_PUERTOS, 3.69, B.z + 1),
   toma: V(X_PUERTOS, 3.3, 17.3), interruptor: V(X_PUERTOS, 6.8, 17.3),
 };
 
@@ -526,7 +528,7 @@ export class Mundo {
     this.b.mueve(this.alfombrilla, { a: this.alfombrilla.position.clone().add(V(0, 0, -140)), ms: 900, fin: () => (this.alfombrilla.visible = false) });
 
     this.perifericos = {};
-    const sitios = { monitor: [monitor, V(-66, MESA, 2), 0.1], teclado: [teclado, V(-66, MESA, 38), 0], raton: [raton, V(-33, MESA, 50), 0] };
+    const sitios = { monitor: [monitor, V(-66, MESA, 2), 0.1], teclado: [teclado, V(-66, MESA, 38), 0], raton: [raton, V(-33, MESA, 50), 0], altavoces: [() => altavoces(70), V(-66, MESA, -4), 0] };
     for (const [id, [hacer, pos, giro]] of Object.entries(sitios)) {
       const m = hacer();
       const g = grupo(m.raiz);
@@ -588,6 +590,7 @@ export class Mundo {
     if (que === "monitor") this.cableFuera("monitor", puerto, { hasta: punta(per.monitor), radio: 0.32, tam: [0, 0.6, 1.6] });
     if (que === "teclado") this.cableFuera("teclado", puerto, { ranura, hasta: punta(per.teclado), radio: 0.2, tam: [0, 0.55, 1.3], invertido: true });
     if (que === "raton") this.cableFuera("raton", puerto, { ranura, hasta: punta(per.raton), radio: 0.16, tam: [0, 0.55, 1.3], invertido: true });
+    if (que === "altavoces") this.cableFuera("altavoces", puerto, { hasta: punta(per.altavoces), material: mat(0x7ddc5f, { rug: 0.45 }), radio: 0.14, tam: [0, 0.5, 0.5] });
     if (que === "red") this.cableFuera("red", puerto, { material: mat(0xf2c14e, { rug: 0.5 }), radio: 0.26, tam: [0, 1.2, 1.4] });
     if (que === "corriente") this.cableFuera("corriente", puerto, { radio: 0.42, tam: [0, 2.2, 2.9], clase: "corriente", invertido: true });
   }
@@ -668,7 +671,8 @@ export class Mundo {
     for (const [id, p] of Object.entries(TOMA)) enPc(id, [p.x, p.y, p.z + 0.5], [id.endsWith("datos") ? 1.6 : 2.8, 0.9, 1.3], { holgura: 0.3 });
     for (const [id, p] of Object.entries(PUERTO)) {
       const punto = id === "interruptor";
-      enPc(id, [p.x - 0.4, p.y, p.z], id === "video-grafica" ? [0.8, 2, 1] : id === "toma" ? [0.8, 2.4, 3] : [0.8, 1.8, 1.7], { tipo: punto ? "punto" : "zona", holgura: 0.5 });
+      const audio = id.startsWith("audio");
+      enPc(id, [p.x - 0.4, p.y, p.z], id === "video-grafica" ? [0.8, 2, 1] : id === "toma" ? [0.8, 2.4, 3] : audio ? [0.8, 0.9, 1.1] : [0.8, 1.8, 1.7], { tipo: punto ? "punto" : "zona", holgura: audio ? 0.06 : 0.5 });
     }
     enPc("boton", [BOTON.x, BOTON.y, ZT - G - 0.3], [2, 2, 0.6], { tipo: "punto" });
     for (const [g, puntos] of Object.entries(this.puntosTornillo)) {
@@ -697,9 +701,10 @@ export class Mundo {
       grafica: [V(2, 50, 40), V(-6, 5, -2)],
       cables: [V(8, 62, 50), V(2, 3, 2)],
       datos: [V(14, 34, 30), V(7, 1.5, 4)],
-      dePie: [V(-26, 54, 156), V(-24, 17, 24)],
-      puesto: [V(-26, 46, 146), V(-26, 15, 24)],
+      dePie: [V(-42, 56, 178), V(-40, 16, 22)],
+      puesto: [V(-42, 50, 170), V(-40, 15, 22)],
       detras: [V(-96, 46, 92), en([C.XR - 12, 6, -6])],
+      sonido: [en([C.XR, 2.6, B.z + 1]).add(V(-30, 7, 24)), en([C.XR, 2.6, B.z + 1])],
       enchufe: [V(-78, 24, 74), en([C.XR, 6, 14])],
       arriba: [V(34, 66, 84), en([BOTON.x, BOTON.y, C.ZT])],
     };
@@ -825,6 +830,7 @@ export function muestra(id) {
     case "ccorriente": return grupo(caja(2.6, 2.2, 2.9, M.negro, 0.3), cabo(NEGRO, 0.42, [[-1.2, 0, 0], [-3.5, 0, 0.2], [-6, 0.4, 2], [-7, 0.6, 5]]));
     case "teclado": return grupo(teclado().raiz);
     case "raton": return grupo(raton().raiz);
+    case "altavoces": return grupo(altavoces().raiz);
   }
   return null;
 }

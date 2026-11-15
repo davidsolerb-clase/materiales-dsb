@@ -14,7 +14,7 @@ import { partida, botonOpcion, elegir, marcarOpciones } from "./partida.js";
 export const reto = {
   id: "reto",
   titulo: "Reto: ¿qué pieza es?",
-  descripcion: "Una pregunta por cada pieza. Cada nivel es más difícil.",
+  descripcion: "Doce preguntas sobre las piezas. Cada nivel es más difícil.",
   niveles: [
     { id: "1", etiqueta: "Nivel 1", nombre: "Ponle nombre", texto: "Ves la pieza en 3D y eliges cómo se llama." },
     { id: "2", etiqueta: "Nivel 2", nombre: "Sin nombres", texto: "Solo piezas y definiciones. Tienes que saber para qué sirve cada una." },
@@ -22,7 +22,7 @@ export const reto = {
   ],
   montar(app, ctx, nivel) {
     const esc = escenario();
-    const preguntas = barajar(PIEZAS).map((p, i) => {
+    const preguntas = barajar(PIEZAS).slice(0, 12).map((p, i) => {
       const tipo = nivel.id === "1" ? "nombre" : nivel.id === "3" ? "escribe" : i % 2 ? "busca" : "funcion";
       return {
         tono: p.color,

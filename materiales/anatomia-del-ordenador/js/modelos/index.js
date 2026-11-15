@@ -10,9 +10,10 @@ import { fuente } from "./fuente.js";
 import { lector } from "./lector.js";
 import { cables } from "./cables.js";
 import { monitor, teclado, raton } from "./perifericos.js";
+import { m2, wifi, altavoces } from "./tarjetas.js";
 import { ajustes } from "./kit.js";
 
-const MODELOS = { placa, cpu, disipador, ram, grafica, disco, ssd, fuente, lector, cables, monitor, teclado, raton };
+const MODELOS = { placa, cpu, disipador, ram, grafica, disco, ssd, fuente, lector, cables, monitor, teclado, raton, m2, wifi, altavoces };
 
 // Con `anonima`, los rótulos del modelo no dicen qué pieza es (para las preguntas).
 export function construir(id, anonima = false) {

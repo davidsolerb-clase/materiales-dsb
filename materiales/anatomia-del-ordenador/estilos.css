@@ -508,3 +508,7 @@ p.elemento[aria-current="true"] { border-color: var(--lima); }
   .bloque-cuerpo.con-foto { grid-template-columns: 1fr; }
   .bloque-foto { aspect-ratio: 16 / 8; }
 }
+.dificultad-5 { border-style: dotted; border-color: #5cc8ff; }
+.dificultad-5 .nivel-etiqueta { color: #5cc8ff; }
+.elemento.quitada { opacity: .45; text-decoration: line-through; }
+.elemento.quitada small { text-decoration: none; }

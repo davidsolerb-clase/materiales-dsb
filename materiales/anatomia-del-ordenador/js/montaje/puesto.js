@@ -60,7 +60,7 @@ export class Puesto {
       ram1: [z.ram1], ram2: [z.ram2], grafica: [z.grafica], ssd: [z.ssd], disco: [z.disco], fuente: [z.fuente],
       c24: [c.atx24], c8: [c.cpu8], cpcie: [c.pcie], cpufan: [c.cpufan], "ssd-corriente": [c["ssd-corriente"]], "disco-corriente": [c["disco-corriente"]],
       "ssd-datos": [c["datos1-disco"], c["datos1-placa"]], "disco-datos": [c["datos2-disco"], c["datos2-placa"]], panel: [c.panel],
-      corriente: [c.corriente], monitor: [c.monitor], teclado: [c.teclado], raton: [c.raton], red: [c.red],
+      corriente: [c.corriente], monitor: [c.monitor], teclado: [c.teclado], raton: [c.raton], red: [c.red], altavoces: [c.altavoces],
       interruptor: [z.fuente.userData.partes.toma[0].children[3]],
       orden: [], // un ajuste: no se ve en el modelo, sino en la pantalla
     };
@@ -241,8 +241,8 @@ export class Puesto {
         texto(c, d.avisos.length ? "Arranca, pero…" : "¡Funciona!", w / 2, h * 0.3, { tam: d.avisos.length ? 76 : 96, peso: 800, alinear: "center" });
         d.avisos.forEach((a, i) => {
           c.fillStyle = "#0a0e1acc";
-          c.fillRect(w / 2 - 300, h * 0.46 + i * 70, 600, 56);
-          texto(c, `⚠ ${a}`, w / 2, h * 0.46 + i * 70 + 30, { tam: 32, color: "#ffd23f", peso: 700, alinear: "center" });
+          c.fillRect(w / 2 - 300, h * 0.44 + i * 54, 600, 46);
+          texto(c, `⚠ ${a}`, w / 2, h * 0.44 + i * 54 + 25, { tam: 28, color: "#ffd23f", peso: 700, alinear: "center" });
         });
         c.fillStyle = "#0a0e1acc";
         c.fillRect(0, h - 54, w, 54);

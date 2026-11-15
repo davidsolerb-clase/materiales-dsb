@@ -11,14 +11,14 @@ import { progreso, estrellasDe } from "./progreso.js";
 // Niveles que cuentan, en un orden que no debe cambiar: el código depende de él.
 // Para añadir niveles, ponlos al final y sube VERSION.
 const VERSION = 1;
-const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2", "enciende-1", "enciende-2", "repara-1", "repara-2", "montaje-0", "montaje-3", "enciende-3", "repara-3"];
+const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2", "enciende-1", "enciende-2", "repara-1", "repara-2", "montaje-0", "montaje-3", "enciende-3", "repara-3", "montaje-4"];
 const LARGO = 10; // letras del código: 5 bits cada una
 const LETRAS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin I, O, 0 ni 1, que se confunden
 const RANGOS = [
   [0, "Aprendiz"],
   [8, "Ayudante de taller"],
   [18, "Montador"],
-  [30, "Técnico"],
+  [32, "Técnico"],
   [NIVELES.length * 3, "Maestro técnico"],
 ];
 
@@ -36,10 +36,10 @@ export function carne() {
   };
 }
 
-// 3 bits de versión, 4 de piezas vistas, 2 por nivel y 9 de comprobación.
+// 3 bits de versión, 5 de piezas vistas, 2 por nivel y 9 de comprobación.
 function escribe(vistas, estrellas) {
   let n = BigInt(VERSION);
-  n = (n << 4n) | BigInt(vistas);
+  n = (n << 5n) | BigInt(vistas);
   for (const e of estrellas) n = (n << 2n) | BigInt(e);
   n = (n << 9n) | BigInt(resumen(n));
   let t = "";
@@ -74,7 +74,7 @@ export function leeCodigo(texto) {
     estrellas.unshift(Number(n & 3n));
     n >>= 2n;
   }
-  const vistas = Number(n & 15n);
-  if (Number(n >> 4n) !== VERSION || vistas > PIEZAS.length) return null;
+  const vistas = Number(n & 31n);
+  if (Number(n >> 5n) !== VERSION || vistas > PIEZAS.length) return null;
   return { vistas, niveles: NIVELES.map((id, i) => ({ id, estrellas: estrellas[i] })) };
 }
