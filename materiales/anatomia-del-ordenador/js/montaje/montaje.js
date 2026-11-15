@@ -71,7 +71,7 @@ function montar(app, ctx, nivel) {
   const zona3d = $(".taller-3d");
   const tarjeta = $(".ficha-paso");
   banco.montar(zona3d);
-  window.__taller = { banco, estado: () => e }; // para las pruebas
+  window.__taller = { banco, estado: () => e, validas: () => zonasDe(paso()).filter(libre) }; // para las pruebas
   const m = new Mundo(banco);
 
   // Fotos de la bandeja.
