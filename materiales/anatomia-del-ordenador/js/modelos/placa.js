@@ -16,7 +16,7 @@ export function placa() {
   };
   tablero.add(en(aletas(1.7, 6.6, 12), -6.8, 0.6, -4.5), en(aletas(6.6, 1.7, 12), -2, 0.6, -9.4));
   for (const z of [6.6, 9.6]) tablero.add(en(caja(2.8, 0.9, 0.75, M.negro, 0.06), -5, 0.54, z));
-  tablero.add(en(chip(2.4, 2.4, "CHIPSET"), 5.4, 0.16, 6.6), en(chip(1.3, 1.3, "AUDIO"), -9.6, 0.16, 9.4), en(chip(1.2, 1.2, "RED"), -8.2, 0.16, 4.2));
+  tablero.add(en(chip(2.4, 2.4, "CHIPSET"), 5.4, 0.16, 6.6), en(chip(1.3, 1.3, "AUDIO"), -9.6, 0.16, 9.4), en(chip(1.2, 1.2, "RED"), -9.2, 0.16, 5.6));
   const lata = [];
   for (const [x, z] of [[-8.6, -8.6], [-7.6, -9.6], [-5.6, -0.6], [-4.2, -0.4], [-2.4, -0.4], [0.9, -8.2], [1.3, -6.8], [1.3, -2.2], [-9.6, 6.2], [-8.4, 7.4], [-10.4, 10.8], [2, 10.6], [9.6, 11], [10.6, 1.6]]) lata.push([x, 0.5, z]);
   tablero.add(copias(new THREE.CylinderGeometry(0.33, 0.33, 0.8, 16), mat(0x1b1d23, { rug: 0.35 }), lata));
@@ -56,7 +56,7 @@ export function placa() {
 
   // Ranura larga para la tarjeta gráfica.
   const larga = grupo(caja(9.2, 1, 0.8, M.negro, 0.06), en(caja(8.6, 0.05, 0.22, M.grisClaro, 0), -0.1, 0.5, 0), en(caja(0.7, 1.2, 1, crema, 0.08), 4.7, 0.05, 0));
-  m.pon(en(larga, -1.8, 0.59, 3.5), { id: "pcie", abre: [0, 6, 0] });
+  m.pon(en(larga, -3.45, 0.59, 3.5), { id: "pcie", abre: [0, 6, 0] });
 
   // Disipador del chipset.
   const tapaChip = grupo(caja(5.2, 0.9, 5.2, gris, 0.25));
@@ -88,7 +88,7 @@ export function placa() {
     sata.add(en(caja(1.5, 0.65, 1.4, M.negro, 0.06), 0, y, z));
     sata.add(en(caja(0.1, 0.3, 1, M.grisClaro, 0), 0.76, y, z));
   }
-  m.pon(en(sata, 11.2, 0.42, 6.2), { id: "sata", abre: [0, 5, 0] });
+  m.pon(en(sata, 11.2, 0.42, 8), { id: "sata", abre: [0, 5, 0] });
 
   // Pila.
   const pila = grupo(cilindro(1.3, 0.3, M.negro), en(cilindro(1.05, 0.34, M.acero), 0, 0.12, 0));
