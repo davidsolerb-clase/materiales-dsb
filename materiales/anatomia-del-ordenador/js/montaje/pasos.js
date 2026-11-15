@@ -390,7 +390,7 @@ export const PASOS = [
     id: "enciende", bloque: 5, tipo: "toca", objetivos: ["boton"], vista: "arriba", vistaTras: "dePie",
     titulo: "Pulsa el botón de encendido",
     texto: "El botón está en el techo de la torre. Púlsalo y mira el monitor.",
-    porque: "Al arrancar, el ordenador comprueba una a una que todas las piezas responden.",
+    porque: "Lo primero que arranca es la BIOS, un programa pequeño guardado en un chip de la placa base. Comprueba una a una que todas las piezas responden y después busca el sistema operativo.",
     hecho: (m) => new Promise((listo) => m.enciende(listo)),
   },
 ];

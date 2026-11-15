@@ -210,7 +210,7 @@ export class Puesto {
         texto(c, d.titulo, w / 2, h / 2 - 22, { tam: 62, peso: 800, alinear: "center" });
         texto(c, d.texto, w / 2, h / 2 + 44, { tam: 30, color: "#a3aecf", peso: 500, alinear: "center" });
       } else if (tipo === "comprobando") {
-        texto(c, "Comprobando las piezas…", 70, 80, { tam: 44, color: "#c6f432", peso: 800 });
+        texto(c, "La BIOS comprueba las piezas…", 70, 80, { tam: 44, color: "#c6f432", peso: 800 });
         d.lineas.forEach((l, i) => {
           texto(c, "✓", 76, 170 + i * 58, { tam: 40, color: "#4ade80", peso: 800 });
           texto(c, l, 130, 170 + i * 58, { tam: 36, color: "#e8edff", peso: 500 });

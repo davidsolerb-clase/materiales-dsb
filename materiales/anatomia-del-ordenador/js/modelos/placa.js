@@ -90,6 +90,10 @@ export function placa() {
   }
   m.pon(en(sata, 11.2, 0.42, 8), { id: "sata", abre: [0, 5, 0] });
 
+  // Chip de la BIOS, en su zócalo.
+  const bios = grupo(en(caja(2.2, 0.22, 2.2, crema, 0.05), 0, 0.11, 0), en(chip(1.8, 1.8, "BIOS"), 0, 0.29, 0));
+  m.pon(en(bios, -1.6, 0.09, 5.4), { id: "bios", abre: [0, 4.4, 0] });
+
   // Pila.
   const pila = grupo(cilindro(1.3, 0.3, M.negro), en(cilindro(1.05, 0.34, M.acero), 0, 0.12, 0));
   pila.add(en(lamina(1.8, 1.8, (c, w) => {

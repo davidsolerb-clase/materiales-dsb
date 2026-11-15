@@ -39,7 +39,7 @@ export const ELEMENTOS = [
 
   {
     id: "orden", nombre: "Orden de arranque", grupo: "Ajustes", verbo: ["Cambiar", "Arreglar"],
-    sin: "La placa busca el sistema operativo en los discos por el orden que tiene apuntado en sus ajustes, la BIOS. Si el primero es un disco que no lo tiene, se queda parada.",
+    sin: "La BIOS busca el sistema operativo en los discos por el orden que tiene apuntado en sus ajustes. Si el primero es un disco que no lo tiene, se queda parada.",
     hallazgo: "El disco duro está el primero de la lista, y ahí no hay sistema operativo.", estaba: "El disco duro estaba el primero de la lista.",
     arreglo: "Poner el SSD el primero", sano: "El SSD está el primero de la lista. Está bien.",
   },
@@ -55,10 +55,10 @@ export const elemento = (id) => ELEMENTOS.find((x) => x.id === id);
 export const SINTOMAS = {
   nada: { titulo: "No pasa nada", texto: "Ni luces ni ventiladores. Como si no hubieras pulsado el botón." },
   negro: { titulo: "Se enciende, pero la pantalla sigue en negro", texto: "Hay luces y giran los ventiladores, pero no aparece nada." },
-  pitidos: { titulo: "Pita y no arranca", texto: "La placa base da tres pitidos. Es su forma de avisar de que algo falla." },
+  pitidos: { titulo: "Pita y no arranca", texto: "La BIOS da tres pitidos. Como todavía no hay imagen, es su forma de avisar de que algo falla." },
   "sin-senal": { titulo: "El monitor dice «Sin señal»", texto: "El ordenador parece encendido, pero al monitor no le llega imagen." },
   calor: { titulo: "Arranca y se apaga solo", texto: "Funciona unos segundos, avisa de que está muy caliente y se apaga." },
-  "sin-sistema": { titulo: "No encuentra el sistema operativo", texto: "Comprueba las piezas y se queda parado con un mensaje de error." },
+  "sin-sistema": { titulo: "No encuentra el sistema operativo", texto: "La BIOS comprueba las piezas, pero no encuentra desde dónde arrancar y se para con un mensaje de error." },
   "sin-teclado": { titulo: "Se queja de que no hay teclado", texto: "Se para con un mensaje: no detecta el teclado." },
   "a-medias": { titulo: "Arranca, pero le falta algo", texto: "Llega al escritorio, aunque no todo funciona." },
   bien: { titulo: "Arranca bien", texto: "Todas las piezas responden y aparece el escritorio." },

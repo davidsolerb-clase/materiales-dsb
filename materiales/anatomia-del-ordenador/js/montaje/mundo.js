@@ -610,7 +610,7 @@ export class Mundo {
     const cuadro = (n) => this.pintaPantalla((c, w, h) => {
       c.fillStyle = "#070b18";
       c.fillRect(0, 0, w, h);
-      texto(c, "Comprobando las piezas…", 70, 80, { tam: 44, color: "#c6f432", peso: 800 });
+      texto(c, "La BIOS comprueba las piezas…", 70, 80, { tam: 44, color: "#c6f432", peso: 800 });
       lineas.slice(0, n).forEach((l, i) => {
         texto(c, "✓", 76, 170 + i * 58, { tam: 40, color: "#4ade80", peso: 800 });
         texto(c, l, 130, 170 + i * 58, { tam: 36, color: "#e8edff", peso: 500 });

@@ -25,6 +25,7 @@ const APRENDIDO = [
   "Cada disco lleva dos cables: uno de corriente y otro de datos.",
   "Si hay tarjeta gráfica, el monitor se conecta a ella.",
   "Lo último que se enchufa es la corriente.",
+  "Al encender, la BIOS comprueba las piezas y después busca el sistema operativo.",
 ];
 const NOMBRES = {
   caja: { grafito: "Grafito", blanco: "Blanco", azul: "Azul", rojo: "Rojo" },
