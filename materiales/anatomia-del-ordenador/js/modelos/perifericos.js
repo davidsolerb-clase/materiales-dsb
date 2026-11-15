@@ -185,7 +185,7 @@ export function teclado() {
   m.pon(en(teclas, 0, 1.78, 0), { id: "teclas", abre: [0, 4.4, 0] });
 
   // Debajo de las teclas: una lámina con un contacto para cada una, y el chip que las lee.
-  const membrana = circuito(W - 2.4, D - 2.2, { color: "#1d6b5a", pista: "#58c9a6", semilla: 8, grosor: 0.06, densidad: 1.3 });
+  const membrana = circuito(W - 2.4, D - 2.2, { color: "#123d35", pista: "#2f8f76", semilla: 8, grosor: 0.06, densidad: 1.3 });
   membrana.rotation.x = pendiente;
   m.pon(en(membrana, 0, 1.36, 0), { id: "membrana", abre: [0, 2, 0] });
   const lector = chip(2.6, 1.5, "CONTROL", { alto: 0.07 });
