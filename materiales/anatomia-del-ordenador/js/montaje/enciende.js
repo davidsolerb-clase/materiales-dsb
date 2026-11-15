@@ -3,28 +3,32 @@
 //   Nivel 1  Experimenta: quitas lo que quieras, enciendes y miras. El reto
 //            es descubrir todas las averías distintas.
 //   Nivel 2  Predice: el taller quita algo y hay que acertar qué pasará.
+//   Nivel 3  El viaje de un dato: por qué piezas pasa la información, en orden.
 
 import { barajar } from "../datos.js";
 import { anotarIntento } from "../progreso.js";
 import { botonOpcion, elegir, marcarOpciones } from "../partida.js";
+import { THREE } from "../modelos/kit.js";
 import { Puesto, listaElementos, pantallaPuesto, sin3d } from "./puesto.js";
 import { ELEMENTOS, SINTOMAS, AVERIAS_POSIBLES, elemento, diagnostico } from "./sistema.js";
 
 const CLAVE = "anatomia-enciende-v1";
 const QUITABLES = ELEMENTOS.filter((x) => !x.fija);
 // Lo que quita el taller en el nivel 2. Salen ocho, al azar.
-const RONDAS = [["c8"], ["ram1", "ram2"], ["monitor"], ["cpufan"], ["ssd-datos"], ["teclado"], ["interruptor"], ["disco"], ["grafica"], ["ram1"], ["panel"], ["red"], ["cpcie"], ["ssd-corriente"], ["corriente"], ["c24"]];
+const RONDAS = [["c8"], ["ram1", "ram2"], ["monitor"], ["cpufan"], ["ssd-datos"], ["teclado"], ["interruptor"], ["disco"], ["grafica"], ["ram1"], ["panel"], ["red"], ["cpcie"], ["ssd-corriente"], ["corriente"], ["c24"], ["orden"]];
 
 export const enciende = {
   id: "enciende",
   titulo: "Taller: enciéndelo",
   descripcion: "¿Qué pasa si falta una pieza o un cable? Quítalo, enciende y mira.",
+  foto: "miniaturas/taller-enciende.webp",
   necesita3d: true,
   niveles: [
     { id: "1", etiqueta: "Nivel 1", nombre: "Experimenta", texto: "Quita lo que quieras y enciende. Hay ocho averías distintas: descúbrelas todas." },
     { id: "2", etiqueta: "Nivel 2", nombre: "Predice", texto: "El taller quita algo y tú dices qué va a pasar antes de encender." },
+    { id: "3", etiqueta: "Nivel 3", nombre: "El viaje de un dato", texto: "Pulsas una tecla, abres un juego, guardas una foto. ¿Por qué piezas pasa?" },
   ],
-  montar: (app, ctx, nivel) => (nivel.id === "1" ? experimenta : predice)(app, ctx, nivel),
+  montar: (app, ctx, nivel) => ({ 1: experimenta, 2: predice, 3: viaje })[nivel.id](app, ctx, nivel),
 };
 
 // Por qué ha pasado: una frase por cada culpable.
@@ -65,7 +69,7 @@ function experimenta(app, ctx, nivel) {
     const e = puesto.estado;
     lista.innerHTML = listaElementos(QUITABLES, {
       pulsado: (x) => e[x.id] !== "bien",
-      boton: (x) => `<span>${x.nombre}</span><small>${e[x.id] !== "bien" ? (x.id === "interruptor" ? "Apagado" : x.grupo === "Piezas" ? "Quitada" : "Desenchufado") : ""}</small>`,
+      boton: (x) => `<span>${x.nombre}</span><small>${e[x.id] !== "bien" ? (x.id === "interruptor" ? "Apagado" : x.id === "orden" ? "Cambiado" : x.grupo === "Piezas" ? "Quitada" : "Desenchufado") : ""}</small>`,
     });
     const quitados = QUITABLES.filter((x) => e[x.id] !== "bien");
     const s = resultado && SINTOMAS[resultado.sintoma];
@@ -203,6 +207,140 @@ function predice(app, ctx, nivel) {
   };
   app.addEventListener("click", pulsa);
   ronda();
+  return () => {
+    app.removeEventListener("click", pulsa);
+    puesto.destruir();
+  };
+}
+
+// ---------------------------------------------------------------- Nivel 3
+
+// Cada viaje es una lista de paradas con lo que pasa en cada una.
+const PARADAS = { teclado: "Teclado", raton: "Ratón", placa: "Placa base", cpu: "Procesador", ram: "Memoria RAM", grafica: "Tarjeta gráfica", monitor: "Monitor", ssd: "Disco SSD", disco: "Disco duro" };
+const VIAJES = [
+  {
+    titulo: "Pulsas una tecla",
+    texto: "Estás escribiendo un trabajo y pulsas la «A». ¿Por dónde pasa hasta que la ves en la pantalla?",
+    camino: [
+      ["teclado", "El teclado avisa de qué tecla has pulsado."],
+      ["placa", "El aviso entra por el puerto USB y la placa base lo lleva hasta el procesador."],
+      ["cpu", "El procesador decide qué significa: hay que escribir una «A»."],
+      ["ram", "El trabajo que tienes abierto está en la memoria RAM. Ahí se añade la letra."],
+      ["grafica", "La tarjeta gráfica dibuja la letra."],
+      ["monitor", "Y el monitor te la enseña. Todo, en menos de lo que tardas en parpadear."],
+    ],
+  },
+  {
+    titulo: "Abres un juego",
+    texto: "Haces doble clic en tu juego favorito. ¿Qué camino sigue hasta que aparece en la pantalla?",
+    camino: [
+      ["ssd", "El juego está guardado en el SSD."],
+      ["placa", "Sale por el cable de datos y la placa base lo reparte."],
+      ["ram", "Se copia a la memoria RAM, que es mucho más rápida que cualquier disco."],
+      ["cpu", "El procesador hace los cálculos: dónde está cada personaje, qué pasa si saltas…"],
+      ["grafica", "La tarjeta gráfica convierte esos cálculos en imágenes."],
+      ["monitor", "El monitor las enseña, muchas veces cada segundo."],
+    ],
+  },
+  {
+    titulo: "Guardas una foto",
+    texto: "Has retocado una foto y pulsas «Guardar» con el ratón. ¿A dónde va?",
+    camino: [
+      ["raton", "Haces clic en «Guardar»."],
+      ["placa", "La placa base lleva el clic hasta el procesador."],
+      ["cpu", "El procesador da la orden: hay que guardar la foto."],
+      ["ram", "La foto retocada está en la memoria RAM. Si se fuera la luz ahora, se perdería."],
+      ["disco", "Se copia al disco duro. Ahí se queda aunque apagues el ordenador."],
+    ],
+  },
+];
+
+function viaje(app, ctx, nivel) {
+  const partes = conPuesto(app, `Enciéndelo · ${nivel.nombre}`);
+  if (!partes) return sin3d(app, enciende.titulo);
+  const { puesto, lista, ficha } = partes;
+  const { b, m } = puesto;
+
+  // Cada parada se ilumina en el modelo.
+  const z = m.piezas, per = m.perifericos;
+  const cosas = { teclado: [per.teclado], raton: [per.raton], monitor: [per.monitor], placa: [m.placa.children[0]], cpu: [z.disipador], ram: [z.ram1, z.ram2], grafica: [z.grafica], ssd: [z.ssd], disco: [z.disco] };
+  b.escena.updateMatrixWorld(true);
+  for (const [id, objetos] of Object.entries(cosas)) {
+    const caja = new THREE.Box3();
+    for (const o of objetos) caja.expandByObject(o);
+    b.diana(`parada-${id}`, { en: b.escena, pos: caja.getCenter(new THREE.Vector3()).toArray(), tam: caja.getSize(new THREE.Vector3()).toArray(), holgura: 0 });
+  }
+  b.alTocar = () => {};
+  puesto.enciende();
+
+  const total = VIAJES.reduce((n, v) => n + v.camino.length - 1, 0);
+  let n = 0; // viaje
+  let k = 1; // parada que se pregunta
+  let aciertos = 0;
+  let ultimo = null; // { bien, texto }
+
+  function pinta() {
+    const v = VIAJES[n];
+    const hechas = v.camino.slice(0, k).map(([id]) => id);
+    const marcas = Object.fromEntries(hechas.map((id, i) => [`parada-${id}`, i === k - 1 ? "guia" : "neutra"]));
+    b.activa(Object.keys(marcas), marcas);
+    lista.innerHTML = `<h2>Viajes</h2><div class="elementos">${VIAJES.map((x, i) => `<p class="elemento ${i < n ? "arreglado" : ""}" aria-current="${i === n}"><span>${x.titulo}</span><small>${i < n ? "Hecho" : ""}</small></p>`).join("")}</div>
+      <h2>Aciertos</h2><p class="paso-cuenta">${aciertos} de ${total}</p>`;
+    const fin = k >= v.camino.length;
+    const opciones = fin ? [] : barajar([v.camino[k][0], ...barajar(Object.keys(PARADAS).filter((id) => id !== v.camino[k][0] && id !== v.camino[k - 1][0])).slice(0, 3)]);
+    ficha.innerHTML = `
+      <p class="cuenta">Viaje ${n + 1} <span>de ${VIAJES.length}</span></p>
+      <h1 tabindex="-1">${v.titulo}</h1>
+      <p class="paso-texto">${v.texto}</p>
+      <ol class="camino">${hechas.map((id) => `<li>${PARADAS[id]}</li>`).join("")}${fin ? "" : "<li class='pendiente'>?</li>"}</ol>
+      ${ultimo
+        ? `<div class="veredicto ${ultimo.bien ? "bien" : "mal"}"><p class="titular">${ultimo.bien ? "¡Eso es!" : "No. Va por aquí:"} ${PARADAS[hechas[hechas.length - 1]]}</p><p>${ultimo.texto}</p></div>`
+        : `<div class="veredicto consejo"><p class="titular">Sale de aquí: ${PARADAS[hechas[0]]}</p><p>${v.camino[0][1]}</p></div>`}
+      ${fin
+        ? `<button class="boton principal" data-seguir>${n === VIAJES.length - 1 ? "Ver resultado" : "Siguiente viaje"} →</button>`
+        : `<p class="paso-ayuda">¿A dónde va ahora?</p><div class="opciones dos">${opciones.map((id, i) => botonOpcion(id, `<span>${PARADAS[id]}</span>`, i)).join("")}</div>`}`;
+    if (!fin) {
+      elegir(ficha, (id) => {
+        const bien = id === v.camino[k][0];
+        if (bien) aciertos++;
+        ultimo = { bien, texto: v.camino[k][1] };
+        k++;
+        pinta();
+      });
+    }
+  }
+
+  function final() {
+    b.activa([]);
+    anotarIntento(`${enciende.id}-3`, aciertos, total);
+    const e = aciertos === total ? 3 : aciertos >= total * 0.75 ? 2 : aciertos >= total * 0.5 ? 1 : 0;
+    lista.innerHTML = "";
+    ficha.innerHTML = `
+      <div class="resultado">
+        <p class="cuenta">${nivel.etiqueta} · ${nivel.nombre}</p>
+        <h1 tabindex="-1"><span class="nota">${aciertos}<small>/${total}</small></span></h1>
+        <p class="grandes">${ctx.pintaEstrellas(e)}</p>
+        <p class="entrada">Casi todo pasa por el mismo sitio: llega a la placa base, el procesador decide con ayuda de la memoria RAM y el resultado sale hacia la pantalla o hacia un disco.</p>
+        <div class="fila">
+          <button class="boton" data-otra>Repetir</button>
+          <a class="boton principal" href="#/jugar/repara/1">Ir a reparar</a>
+          <a class="boton" href="#/">Inicio</a>
+        </div>
+      </div>`;
+  }
+
+  const pulsa = (ev) => {
+    if (ev.target.closest("[data-seguir]")) {
+      n++;
+      k = 1;
+      ultimo = null;
+      if (n < VIAJES.length) pinta();
+      else final();
+    }
+    if (ev.target.closest("[data-otra]")) ctx.ir(`/jugar/${enciende.id}/3`);
+  };
+  app.addEventListener("click", pulsa);
+  pinta();
   return () => {
     app.removeEventListener("click", pulsa);
     puesto.destruir();

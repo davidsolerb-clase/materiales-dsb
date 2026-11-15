@@ -194,17 +194,19 @@ export class Banco {
   }
 
   // Deja tocables solo estas dianas. `marcas`: "guia" (se iluminan), "neutra" o null.
+  // También vale un objeto { id: marca } para dar a cada una la suya.
   activa(ids, marcas = "guia") {
     for (const d of this.activas) d.marca.visible = false;
     this.activas = new Set();
     for (const id of ids) {
       const d = this.dianas.get(id);
       if (!d) continue;
+      const marca = marcas && typeof marcas === "object" ? marcas[id] : marcas;
       this.activas.add(d);
-      d.marca.visible = !!marcas;
-      if (marcas) {
-        d.marca.material.color.set(COLOR[marcas]);
-        d.marca.children[0]?.material.color.set(COLOR[marcas]);
+      d.marca.visible = !!marca;
+      if (marca) {
+        d.marca.material.color.set(COLOR[marca]);
+        d.marca.children[0]?.material.color.set(COLOR[marca]);
       }
     }
     this.sucio = true;

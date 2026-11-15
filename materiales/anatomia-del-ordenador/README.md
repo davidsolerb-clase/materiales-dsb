@@ -4,20 +4,20 @@ Un ordenador en 3D para aprender sus piezas: verlas, abrirlas, montarlo y, más 
 
 ## El itinerario
 
-| Taller | Qué hace el alumno | Estado |
+| Taller | Qué hace el alumno | Niveles |
 | --- | --- | --- |
-| 1. Conoce | Gira y abre las piezas. Dos retos de preguntas. | Hecho |
-| 2. Monta | Coloca las piezas en la caja, las atornilla y conecta los cables. | Hecho: niveles con guía y sin guía |
-| 3. Enciende | Quita una pieza o un cable, enciende y ve qué pasa. Flechas de corriente y de datos por los cables. | Hecho: experimenta y predice |
-| 4. Repara | Recibe un ordenador con un síntoma y busca la avería. | Hecho: algo suelto y pieza rota |
+| 1. Conoce | Gira y abre las piezas. Dos retos de preguntas. | 3 y 2 |
+| 2. Monta | Coloca las piezas en la caja, las atornilla y conecta los cables. Al acabar, elige color, luces y pegatina. | Lo esencial, con guía, sin guía y por tu cuenta |
+| 3. Enciende | Quita una pieza o un cable, enciende y ve qué pasa. La corriente y los datos se ven correr por los cables. | Experimenta, predice y el viaje de un dato |
+| 4. Repara | Recibe un ordenador con un síntoma y busca la avería. | Algo suelto, pieza rota y doble avería |
 
-El progreso se guarda en el navegador de cada alumno. La portada lo resume en un carné con un código de ocho letras; el docente lo lee en `#/profe`.
+El progreso se guarda en el navegador de cada alumno. La portada lo resume en un carné con un código de diez letras; el docente lo lee en `#/profe`.
 
 ## Dónde está cada cosa
 
 - `js/datos.js`: las piezas del atlas y sus textos.
 - `js/modelos/`: los modelos 3D, dibujados con código. `kit.js` tiene las herramientas comunes.
-- `js/montaje/pasos.js`: el guion del taller de montaje. Piezas de la bandeja, pasos y textos.
+- `js/montaje/pasos.js`: el guion del taller de montaje. Piezas de la bandeja, pasos, textos, qué pasos son los esenciales y qué va antes de qué.
 - `js/montaje/mundo.js` y `caja.js`: dónde encaja cada cosa dentro de la caja.
 - `js/montaje/sistema.js`: qué le pasa al ordenador según lo que le falte, y los casos de avería.
 - `js/montaje/puesto.js`: el ordenador ya montado que usan Enciende y Repara.
@@ -31,18 +31,15 @@ Para probar un paso del montaje sin hacer los anteriores, abre el taller con `?p
 
 ## Lo siguiente
 
-En este orden:
-
-1. **Más averías.** Cada caso es una línea en `AVERIAS` (`sistema.js`): la queja del cliente y qué falla. Se añaden sin programar.
-2. **Montaje, nivel 3.** Sin pasos: el alumno elige el orden y el taller le explica por qué no puede adelantarse.
-3. **El viaje de un dato.** Al abrir un juego, ver el recorrido disco, memoria, procesador, gráfica y pantalla.
-4. **BIOS.** Una pantalla de ajustes sencilla: orden de arranque y velocidad de la memoria.
-5. **Personalizar.** Acabados de la caja y pegatinas, al terminar el montaje.
-6. **Más piezas.** SSD M.2, wifi, altavoces y otros periféricos, también en el atlas.
-7. **Desmontar.** El montaje al revés.
+1. **Probarlo en el aula.** En los ordenadores y tabletas del centro, con un grupo. De ahí saldrá qué textos y qué niveles hay que ajustar.
+2. **Más piezas en el atlas.** Monitor, teclado y ratón ya están dibujados (`js/modelos/perifericos.js`); falta darles partes que se abran, ficha y miniaturas. Después: SSD M.2, wifi y altavoces.
+3. **Más averías y más viajes.** Son datos: `AVERIAS` en `sistema.js` y `VIAJES` en `enciende.js`.
+4. **BIOS con más ajustes.** Ahora solo tiene el orden de arranque. Se puede añadir la velocidad de la memoria.
+5. **Desmontar.** El montaje al revés.
 
 ## A tener en cuenta
 
+- **Fotos de la portada.** Las de los talleres y `portada.png` salen del propio 3D. Si cambias un modelo, pide que se vuelvan a sacar.
 - **Modelos propios.** Todo se dibuja con código: pesa poco, tiene un solo estilo y las piezas se pueden abrir. No se importan modelos descargados.
 - **Medidas reales.** Las piezas van en centímetros y encajan entre sí. Si cambias una, comprueba que sigue cabiendo en la caja.
 - **Ordenadores del aula.** El taller solo vuelve a pintar cuando algo cambia. Si va lento, quita solo las sombras y baja la resolución.

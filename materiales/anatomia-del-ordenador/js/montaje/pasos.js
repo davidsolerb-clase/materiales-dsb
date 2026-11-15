@@ -58,15 +58,16 @@ export const PIEZAS = [
 //   tras  paso que tiene que estar hecho para que el hueco exista
 export const ZONAS = {
   alfombrilla: { bloque: 2 }, bandeja: { bloque: 2 },
-  zocalo: { bloque: 2, tras: "abre-zocalo" }, cpu: { bloque: 2, cap: 2, tras: "cierra-zocalo" },
+  zocalo: { bloque: 2, tras: "abre-zocalo" }, cpu: { bloque: 2, cap: 2, tras: "cpu" },
   cpufan: { bloque: 2, tras: "placa-mesa" }, sysfan1: { bloque: 2, tras: "placa-mesa" }, sysfan2: { bloque: 2, tras: "placa-mesa" },
   ranura0: { bloque: 2, tras: "placa-mesa" }, ranura1: { bloque: 2, tras: "placa-mesa" }, ranura2: { bloque: 2, tras: "placa-mesa" }, ranura3: { bloque: 2, tras: "placa-mesa" },
   "hueco-fuente": { bloque: 3 }, "bahia-ssd": { bloque: 3 }, "bahia-disco": { bloque: 3 }, pcie: { bloque: 3, tras: "placa-caja" },
-  atx24: { bloque: 4 }, cpu8: { bloque: 4 }, "toma-grafica": { bloque: 4 }, pines: { bloque: 4 },
+  atx24: { bloque: 4, tras: "placa-mesa" }, cpu8: { bloque: 4, tras: "placa-mesa" }, "toma-grafica": { bloque: 4 }, pines: { bloque: 4, tras: "placa-mesa" },
   "disco-corriente": { bloque: 4 }, "disco-datos": { bloque: 4 }, "ssd-corriente": { bloque: 4 }, "ssd-datos": { bloque: 4 },
-  sata1: { bloque: 4 }, sata2: { bloque: 4 },
-  "video-grafica": { bloque: 5 }, "video-placa": { bloque: 5 }, "usb-a": { bloque: 5, cap: 2 }, "usb-b": { bloque: 5, cap: 2 }, "usb-c": { bloque: 5, cap: 2 },
-  red: { bloque: 5 }, toma: { bloque: 5 },
+  sata1: { bloque: 4, tras: "placa-mesa" }, sata2: { bloque: 4, tras: "placa-mesa" },
+  "video-grafica": { bloque: 5, tras: "levanta" }, "video-placa": { bloque: 5, tras: "levanta" },
+  "usb-a": { bloque: 5, cap: 2, tras: "levanta" }, "usb-b": { bloque: 5, cap: 2, tras: "levanta" }, "usb-c": { bloque: 5, cap: 2, tras: "levanta" },
+  red: { bloque: 5, tras: "levanta" }, toma: { bloque: 5, tras: "levanta" },
 };
 export const BLOQUE_DE_ZONA = (id, bloque) => ZONAS[id] && (ZONAS[id].bloque === bloque || (bloque === 3 && id === "bandeja") || (bloque === 4 && id.startsWith("sysfan")));
 
@@ -393,6 +394,28 @@ export const PASOS = [
     hecho: (m) => new Promise((listo) => m.enciende(listo)),
   },
 ];
+
+// Nivel «Lo esencial»: solo se piden estos pasos. Los demás los hace el taller.
+export const ESENCIALES = new Set(["placa-mesa", "cpu", "pasta", "disipador", "ram1", "ram2", "fuente", "placa-caja", "ssd", "disco", "grafica", "c24", "monitor", "teclado", "raton", "corriente", "enciende"]);
+
+// Nivel «Por tu cuenta»: qué tiene que estar hecho antes de cada paso.
+// En los demás niveles el orden es el de la lista PASOS.
+const DENTRO = PASOS.filter((p) => p.bloque === 3 || p.bloque === 4).map((p) => p.id);
+export const TRAS = {
+  "quita-panel": ["tornillos-panel"],
+  "abre-zocalo": ["placa-mesa"], cpu: ["abre-zocalo"], "cierra-zocalo": ["cpu"], pasta: ["cierra-zocalo"], disipador: ["pasta"],
+  anclajes: ["disipador"], "vent-cpu": ["disipador"], ram1: ["placa-mesa"], ram2: ["ram1"],
+  fuente: ["quita-panel"], "tornillos-fuente": ["fuente"],
+  "placa-caja": ["quita-panel", "anclajes", "vent-cpu", "ram2"], "tornillos-placa": ["placa-caja"],
+  ssd: ["quita-panel"], disco: ["quita-panel"], tapas: ["quita-panel"], grafica: ["tornillos-placa", "tapas"], "tornillo-grafica": ["grafica"],
+  c24: ["fuente", "tornillos-placa"], c8: ["fuente", "tornillos-placa"], cpcie: ["fuente", "grafica"],
+  "corriente-disco1": ["fuente", "ssd", "disco"], "corriente-disco2": ["corriente-disco1"],
+  "datos1-placa": ["tornillos-placa", "ssd", "disco"], "datos1-disco": ["datos1-placa"], "datos2-placa": ["datos1-disco"], "datos2-disco": ["datos2-placa"],
+  "vent-caja": ["tornillos-placa"], cpanel: ["tornillos-placa"],
+  "pon-panel": DENTRO, "cierra-panel": ["pon-panel"], levanta: ["cierra-panel"],
+  monitor: ["levanta"], teclado: ["levanta"], raton: ["levanta"], red: ["levanta"], corriente: ["levanta"],
+  interruptor: ["corriente"], enciende: ["interruptor", "monitor", "teclado", "raton", "red"],
+};
 
 // Dibujos de orientación: cómo está girada la pieza frente a su hueco.
 export const FIGURAS = {

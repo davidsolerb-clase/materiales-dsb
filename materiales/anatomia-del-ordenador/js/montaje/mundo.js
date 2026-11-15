@@ -5,7 +5,7 @@
 // La caja se monta tumbada (ver caja.js). `pc` es el grupo que contiene el
 // ordenador entero: al final se pone de pie girándolo.
 
-import { THREE, M, mat, caja, cilindro, en, grupo, lamina, texto, tubo } from "../modelos/kit.js";
+import { THREE, M, mat, caja, cilindro, en, grupo, lamina, texto, textura, tubo } from "../modelos/kit.js";
 import { construir } from "../modelos/index.js";
 import { monitor, teclado, raton } from "../modelos/perifericos.js";
 import { torre, tornilloHacia, C, B, AGUJEROS, VENTANA, VENTILADOR, BOTON } from "./caja.js";
@@ -62,6 +62,7 @@ export class Mundo {
     this.hazPlaca();
     this.hazDianas();
     this.sombrea(banco.escena);
+    this.personaliza();
   }
 
   sombrea(objeto) {
@@ -353,45 +354,78 @@ export class Mundo {
     return g;
   }
 
-  // Flechas que recorren los cables: corriente (claras sobre naranja) y datos (sobre azul).
+  // Ráfagas de luz que recorren los cables: corriente (amarillas) y datos (azules).
   // `cuales` es true (todos), false (ninguno) o una función (id, clase) => sí o no.
   flujo(cuales) {
-    let alguno = false;
+    const activos = [];
     for (const [id, g] of Object.entries(this.cables)) {
       const u = g.userData;
       const si = !!cuales && g.visible && !!u.clase && (cuales === true || cuales(id, u.clase));
-      if (si && !u.flechas) {
-        const n = Math.max(2, Math.round(u.curva.getLength() / 5));
-        const geo = new THREE.ConeGeometry(u.radio * 1.9 + 0.12, u.radio * 3.4 + 0.5, 10);
-        u.flechas = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ color: u.clase === "corriente" ? 0xfff3b0 : 0xe2f6ff }), n);
-        u.flechas.frustumCulled = false;
-        g.add(u.flechas);
+      if (si && !u.luz) {
+        const largo = u.curva.getLength();
+        const mapa = rafaga().clone();
+        mapa.needsUpdate = true;
+        mapa.repeat.set((u.invertido ? -1 : 1) * Math.max(1, Math.round(largo / 7)), 1);
+        u.luz = new THREE.Mesh(
+          new THREE.TubeGeometry(u.curva, 90, u.radio * 1.3 + 0.07, 8),
+          new THREE.MeshBasicMaterial({ map: mapa, color: u.clase === "corriente" ? 0xffe27a : 0x8fe3ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+        );
+        u.luz.userData.paso = 10 / largo; // la luz avanza a 10 cm por segundo
+        g.add(u.luz);
       }
-      if (u.flechas) u.flechas.visible = si;
-      alguno ||= si;
+      if (u.luz) u.luz.visible = si;
+      if (si) activos.push(u.luz);
     }
-    const o = new THREE.Object3D();
-    const arriba = V(0, 1, 0);
-    this.b.alPintar = alguno
+    let antes = 0;
+    this.b.alPintar = activos.length
       ? (t) => {
-          for (const g of Object.values(this.cables)) {
-            const u = g.userData;
-            if (!u.flechas?.visible) continue;
-            const n = u.flechas.count;
-            const paso = (t * 9) / u.curva.getLength();
-            for (let i = 0; i < n; i++) {
-              let k = (i / n + paso) % 1;
-              if (u.invertido) k = 1 - k;
-              o.position.copy(u.curva.getPointAt(k));
-              const tan = u.curva.getTangentAt(k);
-              o.quaternion.setFromUnitVectors(arriba, u.invertido ? tan.negate() : tan);
-              o.updateMatrix();
-              u.flechas.setMatrixAt(i, o.matrix);
-            }
-            u.flechas.instanceMatrix.needsUpdate = true;
-          }
+          const dt = antes ? Math.min(0.1, t - antes) : 0;
+          antes = t;
+          for (const l of activos) l.material.map.offset.x -= dt * l.userData.paso * Math.abs(l.material.map.repeat.x);
         }
       : null;
+    this.b.sucio = true;
+  }
+
+  // ---------------------------------------------------------------- Personalizar
+
+  // Acabado elegido por el alumno: { caja, luz, pegatina }. Se guarda en su navegador.
+  personaliza(cambio) {
+    const mio = { ...ACABADO_DE_FABRICA, ...leeAcabado(), ...cambio };
+    if (cambio) {
+      try {
+        localStorage.setItem(CLAVE_ACABADO, JSON.stringify(mio));
+      } catch {}
+    }
+    const c = this.caja;
+    const [chapa, dentro] = ACABADOS.caja[mio.caja] || ACABADOS.caja.grafito;
+    c.materiales.chapa.color.set(chapa);
+    c.materiales.dentro.color.set(dentro);
+    const luz = mio.luz in ACABADOS.luz ? ACABADOS.luz[mio.luz] : ACABADOS.luz.lima; // null: apagadas
+    this.colorLuz = luz;
+    for (const o of [c.franja, c.tira]) {
+      o.material.color.set(luz ?? 0x2a3142);
+      o.material.emissive.set(luz ?? 0x000000);
+    }
+    this.luces(this.b.encendido);
+    c.pegatina.visible = mio.pegatina !== "ninguna" && !!PEGATINAS[mio.pegatina];
+    if (c.pegatina.visible) {
+      c.pegatina.material.map?.dispose();
+      c.pegatina.material.map = textura(256, 256, PEGATINAS[mio.pegatina]);
+      c.pegatina.material.needsUpdate = true;
+    }
+    this.b.sucio = true;
+    return mio;
+  }
+
+  // Luces de la caja: tenues con el ordenador apagado, fuertes al encenderlo.
+  luces(encendido) {
+    const c = this.caja;
+    const luz = this.colorLuz;
+    c.piloto.material.emissive.set(encendido ? luz ?? 0xc6f432 : 0x000000);
+    c.piloto.material.emissiveIntensity = 2.2;
+    c.franja.material.emissiveIntensity = encendido ? 1.6 : 0.25;
+    c.tira.material.emissiveIntensity = encendido ? 2.4 : 0.15;
     this.b.sucio = true;
   }
 
@@ -567,8 +601,7 @@ export class Mundo {
   // Arranque: se encienden las luces, giran los ventiladores y la pantalla va contando qué comprueba.
   enciende(fin) {
     const b = this.b;
-    this.caja.piloto.material.emissive.set(0xc6f432);
-    this.caja.piloto.material.emissiveIntensity = 2.2;
+    this.luces(true);
     const piloto = this.perifericos.monitor.getObjectByName("piloto");
     if (piloto) piloto.material.emissive?.set(0x5cc8ff);
     b.encendido = true;
@@ -665,7 +698,7 @@ export class Mundo {
       cables: [V(8, 62, 50), V(2, 3, 2)],
       datos: [V(14, 34, 30), V(7, 1.5, 4)],
       dePie: [V(-26, 54, 156), V(-24, 17, 24)],
-      puesto: [V(-18, 44, 128), V(-18, 15, 24)],
+      puesto: [V(-26, 46, 146), V(-26, 15, 24)],
       detras: [V(-96, 46, 92), en([C.XR - 12, 6, -6])],
       enchufe: [V(-78, 24, 74), en([C.XR, 6, 14])],
       arriba: [V(34, 66, 84), en([BOTON.x, BOTON.y, C.ZT])],
@@ -679,6 +712,75 @@ export class Mundo {
     const lejos = Math.max(1, 1.3 / this.b.camara.aspect);
     this.b.ver(objetivo.clone().add(pos.sub(objetivo).multiplyScalar(lejos)), objetivo, ms);
   }
+}
+
+// Acabados entre los que se puede elegir.
+const CLAVE_ACABADO = "anatomia-mi-pc-v1";
+const ACABADO_DE_FABRICA = { caja: "grafito", luz: "lima", pegatina: "ninguna" };
+export const ACABADOS = {
+  caja: { grafito: [0x2a3142, 0x39425a], blanco: [0xdfe4ee, 0xc3cad8], azul: [0x1f3f8f, 0x2c4f9f], rojo: [0x9c2130, 0x4a2a36] }, // [por fuera, por dentro]
+  luz: { lima: 0xc6f432, azul: 0x3fb6ff, rosa: 0xff5c8a, naranja: 0xff8a3d, apagadas: null },
+};
+function leeAcabado() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ACABADO)) || {};
+  } catch {
+    return {};
+  }
+}
+
+// Pegatinas: dibujos sencillos con borde blanco.
+const figura = (color, trazar) => (c, w) => {
+  c.clearRect(0, 0, w, w);
+  c.lineJoin = "round";
+  c.beginPath();
+  trazar(c, w);
+  c.closePath();
+  c.strokeStyle = "#fff";
+  c.lineWidth = w * 0.11;
+  c.stroke();
+  c.fillStyle = color;
+  c.fill();
+};
+export const PEGATINAS = {
+  estrella: figura("#ffd23f", (c, w) => {
+    for (let i = 0; i < 10; i++) {
+      const r = w * (i % 2 ? 0.17 : 0.4), a = (i * Math.PI) / 5 - Math.PI / 2;
+      c.lineTo(w / 2 + Math.cos(a) * r, w / 2 + Math.sin(a) * r);
+    }
+  }),
+  rayo: figura("#c6f432", (c, w) => {
+    for (const [x, y] of [[0.58, 0.1], [0.24, 0.56], [0.46, 0.56], [0.38, 0.9], [0.76, 0.42], [0.54, 0.42]]) c.lineTo(x * w, y * w);
+  }),
+  corazon: figura("#ff5c8a", (c, w) => {
+    c.moveTo(w * 0.5, w * 0.86);
+    c.bezierCurveTo(w * 0.02, w * 0.52, w * 0.16, w * 0.12, w * 0.5, w * 0.34);
+    c.bezierCurveTo(w * 0.84, w * 0.12, w * 0.98, w * 0.52, w * 0.5, w * 0.86);
+  }),
+  planeta: figura("#5cc8ff", (c, w) => {
+    c.arc(w / 2, w / 2, w * 0.3, 0, Math.PI * 2);
+    c.moveTo(w * 0.94, w * 0.4);
+    c.ellipse(w / 2, w / 2, w * 0.44, w * 0.1, -0.35, 0, Math.PI * 2);
+  }),
+};
+
+// Dibujo de una ráfaga: una estela que acaba en una punta brillante.
+let rafagaHecha;
+function rafaga() {
+  if (!rafagaHecha) {
+    rafagaHecha = textura(128, 4, (c, w, h) => {
+      const g = c.createLinearGradient(0, 0, w, 0);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.45, "rgba(255,255,255,.35)");
+      g.addColorStop(0.62, "rgba(255,255,255,1)");
+      g.addColorStop(0.66, "rgba(255,255,255,0)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      c.fillStyle = g;
+      c.fillRect(0, 0, w, h);
+    });
+    rafagaHecha.wrapS = THREE.RepeatWrapping;
+  }
+  return rafagaHecha;
 }
 
 // Rótulo blanco impreso sobre la placa.

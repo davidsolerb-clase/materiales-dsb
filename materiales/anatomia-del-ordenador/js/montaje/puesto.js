@@ -32,6 +32,7 @@ export class Puesto {
     this.b.alTocar = (id) => id && this.alElegir(id.slice(3));
     this.m.mira("puesto", 0);
     this.marca(null);
+    window.__puesto = this; // para las pruebas automáticas
   }
 
   // Hace solo, de golpe, todos los pasos del taller de montaje.
@@ -61,6 +62,7 @@ export class Puesto {
       "ssd-datos": [c["datos1-disco"], c["datos1-placa"]], "disco-datos": [c["datos2-disco"], c["datos2-placa"]], panel: [c.panel],
       corriente: [c.corriente], monitor: [c.monitor], teclado: [c.teclado], raton: [c.raton], red: [c.red],
       interruptor: [z.fuente.userData.partes.toma[0].children[3]],
+      orden: [], // un ajuste: no se ve en el modelo, sino en la pantalla
     };
     this.alturaRam = z.ram1.position.y;
   }
@@ -70,6 +72,7 @@ export class Puesto {
     this.b.escena.updateMatrixWorld(true);
     for (const el of ELEMENTOS) {
       const o = this.objetos[el.id][0];
+      if (!o) continue;
       const caja = new THREE.Box3().setFromObject(o.userData.curva ? o.children[1] : o);
       const tam = caja.getSize(new THREE.Vector3());
       this.b.diana(`el-${el.id}`, { en: this.b.escena, pos: caja.getCenter(new THREE.Vector3()).toArray(), tam: tam.toArray(), holgura: o.userData.curva || el.id === "interruptor" ? 0.9 : 0.2 });
@@ -81,6 +84,7 @@ export class Puesto {
     this.b.activa(ELEMENTOS.map((el) => `el-${el.id}`), null);
     if (!id) return;
     const d = this.b.dianas.get(`el-${id}`);
+    if (!d) return;
     d.marca.visible = true;
     d.marca.material.color.set(0xc6f432);
     d.marca.children[0]?.material.color.set(0xc6f432);
@@ -124,8 +128,7 @@ export class Puesto {
 
   luces(si) {
     const m = this.m;
-    m.caja.piloto.material.emissive.set(si ? 0xc6f432 : 0x000000);
-    m.caja.piloto.material.emissiveIntensity = 2.2;
+    m.luces(si);
     m.perifericos.monitor.getObjectByName("piloto")?.material.emissive?.set(si ? 0x5cc8ff : 0x000000);
     this.b.encendido = si;
     this.b.sucio = true;
@@ -216,6 +219,19 @@ export class Puesto {
         texto(c, tipo === "error" ? "ERROR" : "AVISO", 70, 110, { tam: 40, color: tipo === "error" ? "#ff6b6b" : "#ffd23f", peso: 800 });
         texto(c, d.titulo, 70, 220, { tam: 50, peso: 800 });
         texto(c, d.texto, 70, 300, { tam: 34, color: "#cdd5f0", peso: 500 });
+      } else if (tipo === "bios") {
+        c.fillStyle = "#0b2a7a";
+        c.fillRect(0, 0, w, h);
+        c.fillStyle = "#c9d6ff";
+        c.fillRect(0, 0, w, 70);
+        texto(c, "AJUSTES DE LA PLACA BASE (BIOS)", 40, 36, { tam: 34, color: "#0b2a7a", peso: 800 });
+        texto(c, "Orden de arranque", 60, 150, { tam: 44, peso: 800 });
+        texto(c, "La placa busca el sistema operativo en este orden:", 60, 210, { tam: 28, color: "#c9d6ff", peso: 500 });
+        (d.mal ? ["Disco duro (1 TB): sin sistema", "Disco SSD (500 GB)"] : ["Disco SSD (500 GB)", "Disco duro (1 TB)"]).forEach((l, i) => {
+          c.fillStyle = i ? "#12359a" : d.mal ? "#a3283a" : "#1f8a5c";
+          c.fillRect(60, 260 + i * 90, 760, 70);
+          texto(c, `${i + 1}.  ${l}`, 90, 296 + i * 90, { tam: 36, peso: 700 });
+        });
       } else if (tipo === "escritorio") {
         const g = c.createLinearGradient(0, 0, w, h);
         g.addColorStop(0, "#27358f");

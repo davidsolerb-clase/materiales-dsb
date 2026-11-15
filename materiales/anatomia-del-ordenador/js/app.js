@@ -105,6 +105,8 @@ function inicio() {
           <h2><span class="paso">${i + 2}</span>${act.titulo}</h2>
           <p>${act.descripcion}</p>
         </div>
+        <div class="bloque-cuerpo ${act.foto ? "con-foto" : ""}">
+        ${act.foto ? `<img class="bloque-foto" src="${act.foto}" alt="" loading="lazy" width="640" height="480">` : ""}
         <div class="niveles">
           ${act.niveles
             .map((n, k) => {
@@ -120,6 +122,7 @@ function inicio() {
               </article>`;
             })
             .join("")}
+        </div>
         </div>
       </section>`,
     ).join("")}
@@ -226,11 +229,11 @@ function profe() {
     </header>
     <div class="profe">
       <h1 tabindex="-1">Leer un código de resultado</h1>
-      <p class="entrada">Cada alumno tiene en la portada un código de ocho letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
+      <p class="entrada">Cada alumno tiene en la portada un código de diez letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
       <form class="escribir" autocomplete="off">
         <label for="codigo">Código del alumno</label>
         <div class="fila">
-          <input id="codigo" type="text" maxlength="10" placeholder="ABCD-EFGH" autocapitalize="characters" spellcheck="false">
+          <input id="codigo" type="text" maxlength="12" placeholder="ABCDE-FGHJK" autocapitalize="characters" spellcheck="false">
           <button class="boton principal">Leer</button>
         </div>
       </form>
@@ -247,7 +250,7 @@ function profe() {
     ev.preventDefault();
     const r = leeCodigo(app.querySelector("#codigo").value);
     if (!r) {
-      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las ocho letras.</p>`;
+      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las diez letras.</p>`;
       return;
     }
     const total = r.niveles.reduce((a, n) => a + n.estrellas, 0);

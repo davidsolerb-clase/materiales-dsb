@@ -467,3 +467,44 @@ dialog form { margin-top: 18px; }
   .taller.puesto { grid-template-columns: 1fr; }
   .elementos { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 }
+
+/* ---------- Montaje: nivel sin pasos y acabados ---------- */
+
+.dificultad-4 { border-style: dashed; border-color: #b79cff; }
+.dificultad-4 .nivel-etiqueta { color: #b79cff; }
+.tareas-titulo { margin: 16px 0 6px; font: 700 .78rem/1.2 inherit; font-family: inherit; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); }
+.tareas { display: grid; gap: 3px; font-size: .88rem; color: var(--suave); }
+.tareas li { position: relative; padding-left: 22px; }
+.tareas li::before { content: ""; position: absolute; left: 2px; top: .3em; width: 11px; height: 11px; border-radius: 4px; border: 2px solid var(--linea); }
+.tareas li.hecha { color: var(--linea); text-decoration: line-through; }
+.tareas li.hecha::before { background: var(--bien); border-color: var(--bien); }
+.taller.libre .taller-bandeja h2 { margin-top: 14px; }
+.acabado-rotulo { margin-top: 10px; font-size: .85rem; font-weight: 600; color: var(--suave); }
+.muestrario { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.muestra {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 7px; border-radius: 999px;
+  border: 2px solid var(--linea); background: var(--capa-2); font-size: .85rem; font-weight: 600;
+}
+.muestra::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: var(--color); border: 1.5px solid #ffffff55; }
+.muestra[aria-pressed="true"] { border-color: var(--lima); background: color-mix(in srgb, var(--lima) 14%, var(--capa-2)); }
+.camino { display: flex; flex-wrap: wrap; gap: 6px 4px; margin: 14px 0 4px; counter-reset: parada; }
+.camino li { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 8px; background: var(--capa-2); border: 2px solid var(--linea); font-size: .85rem; font-weight: 600; }
+.camino li + li::before { content: "→"; margin: 0 8px 0 -22px; color: var(--suave); position: relative; left: -4px; }
+.camino li + li { margin-left: 18px; }
+.camino li:last-child { border-color: var(--lima); }
+.camino .pendiente { border-style: dashed; color: var(--suave); }
+p.elemento[aria-current="true"] { border-color: var(--lima); }
+
+/* ---------- Portada: foto de cada taller ---------- */
+
+.bloque-cuerpo.con-foto { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.bloque-foto { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radio); border: 2px solid var(--linea); background: #0d1324; }
+.con-foto .niveles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.con-foto .nivel:last-child:nth-child(odd) { grid-column: span 2; }
+@media (max-width: 560px) { .con-foto .niveles { grid-template-columns: 1fr; } .con-foto .nivel:last-child:nth-child(odd) { grid-column: auto; } }
+.con-foto .nivel { padding: 18px; }
+.con-foto .nivel h3 { font-size: 1.4rem; }
+@media (max-width: 860px) {
+  .bloque-cuerpo.con-foto { grid-template-columns: 1fr; }
+  .bloque-foto { aspect-ratio: 16 / 8; }
+}

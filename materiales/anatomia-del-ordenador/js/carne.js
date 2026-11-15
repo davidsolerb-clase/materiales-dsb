@@ -1,7 +1,7 @@
 // Carné de técnico y código de resultado.
 //
 // El carné resume el progreso: piezas vistas y estrellas de cada nivel.
-// El código es ese mismo resumen en ocho letras, para que el alumno lo
+// El código es ese mismo resumen en diez letras, para que el alumno lo
 // entregue (en un papel o en el aula virtual) y el docente lo lea en #/profe.
 // No lleva nombres ni datos personales: solo cuenta estrellas.
 
@@ -11,14 +11,14 @@ import { progreso, estrellasDe } from "./progreso.js";
 // Niveles que cuentan, en un orden que no debe cambiar: el código depende de él.
 // Para añadir niveles, ponlos al final y sube VERSION.
 const VERSION = 1;
-const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2", "enciende-1", "enciende-2", "repara-1", "repara-2"];
-const LARGO = 8; // letras del código: 5 bits cada una
+const NIVELES = ["reto-1", "reto-2", "reto-3", "dentro-1", "dentro-2", "montaje-1", "montaje-2", "enciende-1", "enciende-2", "repara-1", "repara-2", "montaje-0", "montaje-3", "enciende-3", "repara-3"];
+const LARGO = 10; // letras del código: 5 bits cada una
 const LETRAS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin I, O, 0 ni 1, que se confunden
 const RANGOS = [
   [0, "Aprendiz"],
-  [6, "Ayudante de taller"],
-  [14, "Montador"],
-  [23, "Técnico"],
+  [8, "Ayudante de taller"],
+  [18, "Montador"],
+  [30, "Técnico"],
   [NIVELES.length * 3, "Maestro técnico"],
 ];
 

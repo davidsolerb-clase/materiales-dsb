@@ -10,21 +10,21 @@
 import { anotarIntento } from "../progreso.js";
 import { Puesto, listaElementos, pantallaPuesto, sin3d } from "./puesto.js";
 import { porque } from "./enciende.js";
-import { ELEMENTOS, SINTOMAS, AVERIAS, elemento } from "./sistema.js";
+import { ELEMENTOS, SINTOMAS, AVERIAS, elemento, hallazgo, estaba, arreglo, sano } from "./sistema.js";
 
 export const repara = {
   id: "repara",
   titulo: "Taller: repara",
   descripcion: "Te traen un ordenador que falla. Enciéndelo, piensa y arréglalo.",
+  foto: "miniaturas/taller-repara.webp",
   necesita3d: true,
   niveles: [
     { id: "1", etiqueta: "Nivel 1", nombre: "A la vista", texto: "Algo está suelto, desenchufado o apagado. Si miras bien, se ve." },
     { id: "2", etiqueta: "Nivel 2", nombre: "Pieza rota", texto: "Todo parece en su sitio. Hay que deducir qué pieza falla y cambiarla." },
+    { id: "3", etiqueta: "Nivel 3", nombre: "Doble avería", texto: "Dos fallos a la vez. Cuando arreglas uno, aparece el otro." },
   ],
   montar,
 };
-
-const ARREGLO = { falta: "Estaba desenchufado.", suelta: "Estaba mal pinchada: no llegaba al fondo de la ranura.", rota: "Estaba rota." };
 
 function montar(app, ctx, nivel) {
   const partes = pantallaPuesto(app, `Repara · ${nivel.nombre}`);
@@ -68,7 +68,7 @@ function montar(app, ctx, nivel) {
         <h1 tabindex="-1">¡Arreglado!</h1>
         <p class="grandes">${ctx.pintaEstrellas(estrellas)}</p>
         <div class="veredicto bien"><p class="titular">Qué le pasaba</p>
-          ${Object.entries(c.fallo).map(([id, que]) => `<p><b>${elemento(id).nombre}.</b> ${id === "interruptor" ? "Estaba apagado." : ARREGLO[que]} ${elemento(id).sin}</p>`).join("")}</div>
+          ${Object.entries(c.fallo).map(([id, que]) => `<p><b>${elemento(id).nombre}.</b> ${estaba(elemento(id), que)} ${elemento(id).sin}</p>`).join("")}</div>
         <p class="paso-ayuda">${c.deMas ? `Has dado ${c.deMas} ${c.deMas === 1 ? "paso" : "pasos"} de más.` : "Sin un solo paso de más."}</p>
         <button class="boton principal" data-seguir>${n === casos.length - 1 ? "Ver resultado" : "Siguiente caso"} →</button>`;
       return ficha.querySelector("[data-seguir]").focus({ preventScroll: true });
@@ -85,7 +85,7 @@ function montar(app, ctx, nivel) {
           ${c.nota ? `<p>${c.nota}</p>` : ""}
           <div class="fila">
             ${c.vistos[el.id] || c.hallado === el.id ? "" : `<button class="boton" data-revisar>Revisar</button>`}
-            ${c.hallado === el.id ? `<button class="boton principal" data-arreglar>${el.id === "interruptor" ? "Encenderlo" : el.grupo === "Piezas" ? "Pincharla bien" : "Enchufarlo"}</button>` : ""}
+            ${c.hallado === el.id ? `<button class="boton principal" data-arreglar>${arreglo(el)}</button>` : ""}
             ${el.repuesto && c.vistos[el.id] !== "cambiado" ? `<button class="boton" data-cambiar>Cambiar por una nueva</button>` : ""}
           </div>
         </div>` : `<p class="paso-ayuda">${puesto.encendido ? "Apágalo antes de tocar nada por dentro." : "Elige una pieza o un cable, en la lista o en el modelo, para revisarlo."}</p>`}
@@ -97,6 +97,8 @@ function montar(app, ctx, nivel) {
     c.sel = c.sel === id ? null : id;
     c.nota = null;
     puesto.marca(c.sel);
+    // El orden de arranque se mira en la pantalla, no en el modelo.
+    if (!puesto.encendido) puesto.pantalla(c.sel === "orden" ? "bios" : "negra", { mal: puesto.estado.orden !== "bien" });
     pinta();
   }
   puesto.alElegir = elige;
@@ -132,14 +134,15 @@ function montar(app, ctx, nivel) {
     if ("revisar" in d) {
       if (como === "falta" || como === "suelta") {
         c.hallado = id;
-        c.nota = `<b>¡Aquí hay algo!</b> ${id === "interruptor" ? "Está apagado." : como === "suelta" ? "No está pinchada hasta el fondo." : "Está desenchufado."}`;
+        c.nota = `<b>¡Aquí hay algo!</b> ${hallazgo(elemento(id), como)}`;
       } else {
         c.vistos[id] = "bien";
         if (como === "bien") c.deMas++;
-        c.nota = elemento(id).repuesto ? "Está bien colocada. A simple vista no se le ve nada raro." : "Está bien conectado.";
+        c.nota = sano(elemento(id));
       }
     } else if ("arreglar" in d) {
       puesto.pon(id, "bien");
+      if (id === "orden") puesto.pantalla("bios", { mal: false });
       c.vistos[id] = "arreglado";
       c.hallado = null;
       c.nota = "Hecho. Enciende para comprobar si era eso.";
@@ -159,7 +162,8 @@ function montar(app, ctx, nivel) {
     const maximo = casos.length * 3;
     const e = total >= maximo - 1 ? 3 : total >= maximo * 0.66 ? 2 : 1;
     anotarIntento(`${repara.id}-${nivel.id}`, total, maximo, e);
-    const otro = repara.niveles.find((x) => x !== nivel);
+    const k = repara.niveles.indexOf(nivel);
+    const otro = repara.niveles[k + 1] || repara.niveles[k - 1];
     lista.innerHTML = "";
     ficha.innerHTML = `
       <div class="resultado">

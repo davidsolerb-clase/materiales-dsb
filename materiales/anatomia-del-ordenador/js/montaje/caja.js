@@ -93,9 +93,17 @@ export function torre() {
 
   // Frontal de plástico con una franja de color.
   const frontal = grupo(caja(2.2, YP + G + 0.5, D + G * 2 + 0.5, plastico, 0.5));
-  frontal.add(en(caja(0.2, 0.5, D - 6, M.lima, 0.1), 1.1, YP / 2 - 3, 0));
+  // La franja y la tira de luces cambian de color al personalizar (cada una con su material).
+  const luz = () => new THREE.MeshStandardMaterial({ color: 0xc6f432, emissive: 0xc6f432, emissiveIntensity: 0.25, roughness: 0.4 });
+  partes.franja = caja(0.2, 0.5, D - 6, luz(), 0.1);
+  frontal.add(en(partes.franja, 1.1, YP / 2 - 3, 0));
   frontal.add(en(malla(D - 8, YP - 7), 1.11, 1.2, 0));
   g.add(en(frontal, XF + G + 1.1, (YP - G) / 2, 0));
+
+  // Tira de luces por dentro, pegada al techo.
+  partes.tira = caja(W - 8, 0.35, 0.35, luz(), 0.1);
+  g.add(en(partes.tira, cx + 1, YP - 1.3, ZT + 0.45));
+  partes.materiales = { chapa, dentro };
 
   // Botonera en el techo: botón de encendido, piloto y dos USB.
   const botonera = grupo();
@@ -121,6 +129,12 @@ export function torre() {
   partes.panel.children[0].renderOrder = 8;
   for (const z of [-1, 1]) partes.panel.add(en(caja(W + G * 2, 0.4, 1, chapa, 0.1), 0, 0, z * (D / 2 + G - 0.5)));
   for (const x of [-1, 1]) partes.panel.add(en(caja(1, 0.4, D + G * 2, chapa, 0.1), x * (W / 2 + G - 0.5), 0, 0));
+  // Hueco para una pegatina, en la esquina del cristal.
+  partes.pegatina = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }));
+  partes.pegatina.rotation.x = -Math.PI / 2;
+  partes.pegatina.renderOrder = 9;
+  partes.pegatina.visible = false;
+  partes.panel.add(en(partes.pegatina, W / 2 - 7.5, 0.18, D / 2 - 7.5));
   g.add(en(partes.panel, cx, YP + 0.2, 0));
 
   return { raiz: g, partes };
