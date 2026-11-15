@@ -5,9 +5,11 @@
 //   visor.js       el visor 3D
 //   escenario.js   la caja donde se ve una pieza
 //   progreso.js    lo que se guarda en el navegador
+//   carne.js       carné de técnico y código de resultado
 //   partida.js     lo común a las actividades de preguntas
 //   reto.js        actividad «¿Qué pieza es?»
 //   dentro.js      actividad «Por dentro»
+//   montaje/       talleres «Monta», «Enciéndelo» y «Repara»
 //
 // Para añadir una actividad: crea un módulo como reto.js y añádelo a ACTIVIDADES.
 // Aparece sola en el inicio y en la dirección #/jugar/<id>/<nivel>.
@@ -15,11 +17,15 @@
 import { PIEZAS, pieza } from "./datos.js";
 import { Visor } from "./visor.js";
 import { escenario, ponerPieza } from "./escenario.js";
-import { progreso, marcarVista, borrarProgreso, estrellas } from "./progreso.js";
+import { progreso, marcarVista, borrarProgreso, estrellasDe } from "./progreso.js";
 import { reto } from "./reto.js";
 import { dentro } from "./dentro.js";
+import { montaje } from "./montaje/montaje.js";
+import { enciende } from "./montaje/enciende.js";
+import { repara } from "./montaje/repara.js";
+import { carne, leeCodigo } from "./carne.js";
 
-const ACTIVIDADES = [reto, dentro];
+const ACTIVIDADES = [reto, dentro, montaje, enciende, repara];
 
 const app = document.getElementById("app");
 const visor = new Visor();
@@ -40,6 +46,7 @@ function navegar() {
   app.className = "";
   const act = seccion === "jugar" && ACTIVIDADES.find((x) => x.id === a);
   if (seccion === "atlas") alSalir = atlas(pieza(a) || PIEZAS[0], b === "dentro");
+  else if (seccion === "profe") alSalir = profe();
   else if (act && act.necesita3d && !visor.ok) alSalir = sin3d(act);
   else if (act) alSalir = act.montar(app, ctx, act.niveles.find((n) => n.id === b) || act.niveles[0]);
   else alSalir = inicio();
@@ -66,10 +73,10 @@ function inicio() {
     <section class="portada">
       <div class="portada-texto">
         <h1 tabindex="-1">Mira un ordenador <em>por dentro</em></h1>
-        <p class="entrada">Gira cada pieza en 3D, ábrela para ver qué lleva dentro y después ponte a prueba.</p>
+        <p class="entrada">Gira cada pieza en 3D y ábrela. Después monta el ordenador, enciéndelo y repara sus averías.</p>
         <div class="fila">
           <a class="boton principal" href="#/atlas/${PIEZAS[0].id}">Explorar las piezas</a>
-          <a class="boton" href="#actividades">Ir a los retos</a>
+          <a class="boton" href="#actividades">Ir a los retos y talleres</a>
         </div>
       </div>
       <div class="portada-3d">
@@ -98,6 +105,8 @@ function inicio() {
           <h2><span class="paso">${i + 2}</span>${act.titulo}</h2>
           <p>${act.descripcion}</p>
         </div>
+        <div class="bloque-cuerpo ${act.foto ? "con-foto" : ""}">
+        ${act.foto ? `<img class="bloque-foto" src="${act.foto}" alt="" loading="lazy" width="640" height="480">` : ""}
         <div class="niveles">
           ${act.niveles
             .map((n, k) => {
@@ -108,19 +117,23 @@ function inicio() {
                 <p>${n.texto}</p>
                 <div class="nivel-pie">
                   <a class="boton ${r ? "" : "principal"}" href="#/jugar/${act.id}/${n.id}">${r ? "Jugar otra vez" : "Jugar"}</a>
-                  ${r ? `<span class="marca-nivel">${pintaEstrellas(estrellas(r.mejor, r.total))} Mejor: ${r.mejor}/${r.total}</span>` : ""}
+                  ${r ? `<span class="marca-nivel">${pintaEstrellas(estrellasDe(r))} Mejor: ${r.mejor}/${r.total}</span>` : ""}
                 </div>
               </article>`;
             })
             .join("")}
         </div>
+        </div>
       </section>`,
     ).join("")}
     </div>
 
+    ${pintaCarne()}
+
     <footer class="pie">
       <span>Tu progreso se guarda solo en este navegador.</span>
       <span class="pie-botones">
+        <a class="enlace" href="#/profe">Soy docente</a>
         <button class="enlace" data-borrar>Borrar mi progreso</button>
         <button class="enlace" data-creditos>Créditos</button>
       </span>
@@ -148,6 +161,15 @@ function inicio() {
   });
 
   app.querySelector("[data-creditos]").onclick = creditos;
+  const copiar = app.querySelector("[data-copiar]");
+  copiar.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(copiar.dataset.copiar);
+      copiar.textContent = "Copiado";
+    } catch {
+      copiar.textContent = "Cópialo a mano";
+    }
+  };
   const borrar = app.querySelector("[data-borrar]");
   borrar.onclick = () => {
     if (borrar.dataset.seguro) {
@@ -163,6 +185,83 @@ function inicio() {
     clearTimeout(reloj);
     visor.vaciar();
   };
+}
+
+// ---------------------------------------------------------------- Carné
+
+const nombreNivel = (id) => {
+  const [act, n] = id.split("-");
+  const a = ACTIVIDADES.find((x) => x.id === act);
+  return `${a.titulo.replace(/^(Reto|Taller): /, "")} · ${a.niveles.find((x) => x.id === n).nombre}`;
+};
+
+function pintaCarne() {
+  const c = carne();
+  return `
+    <section class="bloque carne">
+      <div class="bloque-cabeza">
+        <h2><span class="paso">★</span>Tu carné de técnico</h2>
+        <p>${c.siguiente ? `Te ${c.siguiente.faltan === 1 ? "falta 1 estrella" : `faltan ${c.siguiente.faltan} estrellas`} para ser <b>${c.siguiente.nombre.toLowerCase()}</b>.` : "Has llegado a lo más alto."}</p>
+      </div>
+      <div class="carne-tarjeta">
+        <div>
+          <p class="carne-rango">${c.rango}</p>
+          <p class="carne-datos"><b>${c.total}</b> de ${c.maximo} estrellas · <b>${c.vistas}</b> de ${PIEZAS.length} piezas vistas</p>
+          <div class="carne-barra" role="img" aria-label="${c.total} de ${c.maximo} estrellas"><i style="width:${(c.total / c.maximo) * 100}%"></i></div>
+        </div>
+        <div class="carne-codigo">
+          <p>Tu código de resultado</p>
+          <output>${c.codigo}</output>
+          <button class="boton" data-copiar="${c.codigo}">Copiar</button>
+          <small>Dáselo a tu profe: le dice hasta dónde has llegado.</small>
+        </div>
+      </div>
+    </section>`;
+}
+
+// Página para docentes: lee el código de un alumno.
+function profe() {
+  app.className = "p-profe";
+  app.innerHTML = `
+    <header class="cabecera">
+      <a class="volver" href="#/">← Inicio</a>
+      <span class="marca"><i></i>Para docentes</span>
+    </header>
+    <div class="profe">
+      <h1 tabindex="-1">Leer un código de resultado</h1>
+      <p class="entrada">Cada alumno tiene en la portada un código de diez letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
+      <form class="escribir" autocomplete="off">
+        <label for="codigo">Código del alumno</label>
+        <div class="fila">
+          <input id="codigo" type="text" maxlength="12" placeholder="ABCDE-FGHJK" autocapitalize="characters" spellcheck="false">
+          <button class="boton principal">Leer</button>
+        </div>
+      </form>
+      <div class="profe-resultado" aria-live="polite"></div>
+      <h2>A tener en cuenta</h2>
+      <ul class="profe-notas">
+        <li>El código no lleva el nombre del alumno ni ningún dato personal. Solo cuenta piezas vistas y estrellas.</li>
+        <li>El progreso se guarda en el navegador de cada alumno. Si cambia de ordenador, empieza de cero.</li>
+        <li>El código cambia cada vez que el alumno mejora un resultado.</li>
+      </ul>
+    </div>`;
+  const salida = app.querySelector(".profe-resultado");
+  app.querySelector("form").onsubmit = (ev) => {
+    ev.preventDefault();
+    const r = leeCodigo(app.querySelector("#codigo").value);
+    if (!r) {
+      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las diez letras.</p>`;
+      return;
+    }
+    const total = r.niveles.reduce((a, n) => a + n.estrellas, 0);
+    salida.innerHTML = `
+      <p class="profe-resumen"><b>${total}</b> de ${r.niveles.length * 3} estrellas · <b>${r.vistas}</b> de ${PIEZAS.length} piezas vistas</p>
+      <table>
+        <thead><tr><th>Actividad y nivel</th><th>Estrellas</th></tr></thead>
+        <tbody>${r.niveles.map((n) => `<tr><td>${nombreNivel(n.id)}</td><td>${n.estrellas ? pintaEstrellas(n.estrellas) : "Sin hacer"}</td></tr>`).join("")}</tbody>
+      </table>`;
+  };
+  return () => {};
 }
 
 // ---------------------------------------------------------------- Atlas
@@ -278,7 +377,10 @@ function creditos() {
     <h2 id="creditos-titulo">Créditos</h2>
     <p>Material de David Soler, hecho con ayuda de IA. Los modelos 3D son propios: están dibujados con código para este material.</p>
     <p>La idea de un atlas 3D de piezas viene de
-      <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a>.</p>
+      <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a>.
+      El taller de montaje se inspira en
+      <a href="https://github.com/Htet-Myark/device-lab" target="_blank" rel="noopener">Device Lab</a>, de Htet Myark Aung (MIT):
+      de ahí vienen el montaje por pasos, el destornillador y los errores explicados.</p>
     <p>Visor: <a href="https://threejs.org" target="_blank" rel="noopener">Three.js</a> (MIT).
       Tipografías: Bricolage Grotesque y Outfit (SIL OFL).</p>
     <form method="dialog"><button class="boton principal">Cerrar</button></form>`;

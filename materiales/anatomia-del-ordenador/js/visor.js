@@ -14,6 +14,7 @@ import { construir } from "./modelos/index.js";
 
 const CAMPO = 32; // ángulo de la cámara, en grados
 const PAUSA_GIRO = 4000; // ms sin tocar antes de volver a girar sola
+const ABRE = 1.35; // cuánto se separan las partes al abrir la pieza del todo
 const quieto = matchMedia("(prefers-reduced-motion: reduce)");
 const suave = (t) => t * t * (3 - 2 * t);
 
@@ -182,7 +183,7 @@ export class Visor {
     const m = this.modelo;
     if (!m) return;
     const t = suave(this.apertura);
-    for (const o of m.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t);
+    for (const o of m.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t * ABRE);
     m.contenido.position.lerpVectors(m.centroCerrada, m.centroAbierta, t).multiplyScalar(-1);
   }
 
@@ -274,7 +275,7 @@ export class Visor {
 // radio 1), calcula cuánto crece al abrirse y le pone una sombra en el suelo.
 function preparar(modelo) {
   const medir = (t) => {
-    for (const o of modelo.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t);
+    for (const o of modelo.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t * ABRE);
     const caja = new THREE.Box3().setFromObject(modelo.raiz);
     const t3 = caja.getSize(new THREE.Vector3());
     // La pieza gira sobre sí misma: cuenta su diagonal, no solo el lado más largo.

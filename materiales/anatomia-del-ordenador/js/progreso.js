@@ -25,9 +25,11 @@ export function marcarVista(id) {
 }
 
 // `clave` identifica actividad y nivel, por ejemplo "reto-1".
-export function anotarIntento(clave, aciertos, total) {
+// `conEstrellas` es para las actividades que las calculan a su manera.
+export function anotarIntento(clave, aciertos, total, conEstrellas) {
   const r = progreso.retos[clave] || { mejor: 0, total, intentos: 0 };
   r.mejor = Math.max(r.mejor, aciertos);
+  if (conEstrellas !== undefined) r.estrellas = Math.max(r.estrellas || 0, conEstrellas);
   r.total = total;
   r.intentos++;
   progreso.retos[clave] = r;
@@ -45,3 +47,6 @@ export function estrellas(aciertos, total) {
   const parte = total ? aciertos / total : 0;
   return parte === 1 ? 3 : parte >= 0.75 ? 2 : parte >= 0.5 ? 1 : 0;
 }
+
+// Estrellas de un resultado guardado.
+export const estrellasDe = (r) => r.estrellas ?? estrellas(r.mejor, r.total);
