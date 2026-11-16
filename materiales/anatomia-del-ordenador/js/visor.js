@@ -20,27 +20,12 @@ const suave = (t) => t * t * (3 - 2 * t);
 
 export class Visor {
   constructor() {
-    this.lienzo = document.createElement("canvas");
-    this.lienzo.className = "lienzo";
-    this.lienzo.setAttribute("aria-hidden", "true");
     this.hechos = new Map(); // id de pieza -> modelo preparado
     this.ok = false;
     this.apertura = 0;
     this.meta = 0;
 
-    try {
-      this.render = new THREE.WebGLRenderer({ canvas: this.lienzo, antialias: true, alpha: true });
-    } catch {
-      return;
-    }
-    this.ok = true;
-    this.render.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-    this.render.toneMapping = THREE.ACESFilmicToneMapping;
-    this.render.toneMappingExposure = 1.1;
-
     this.escena = new THREE.Scene();
-    const pmrem = new THREE.PMREMGenerator(this.render);
-    this.escena.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
     const foco = new THREE.DirectionalLight(0xffffff, 1.7);
     foco.position.set(3, 6, 4);
     const relleno = new THREE.DirectionalLight(0x9db8ff, 0.5);
@@ -51,7 +36,38 @@ export class Visor {
     this.pivote = new THREE.Group();
     this.escena.add(this.pivote);
 
-    this.mandos = new OrbitControls(this.camara, this.lienzo);
+    this.rayo = new THREE.Raycaster();
+    this.reloj = new THREE.Clock();
+    this.observador = new ResizeObserver(() => this.ajustar());
+    this.ok = this.arrancar();
+  }
+
+  // Crea el lienzo, el motor 3D y los mandos. Se vuelve a llamar si la
+  // tarjeta gráfica pierde el 3D (pasa en ordenadores lentos): un lienzo que
+  // lo ha perdido ya no vuelve a pintar, hay que poner uno nuevo.
+  arrancar() {
+    const lienzo = document.createElement("canvas");
+    lienzo.className = "lienzo";
+    lienzo.setAttribute("aria-hidden", "true");
+    let render;
+    try {
+      render = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true });
+    } catch {
+      return false;
+    }
+    const viejo = this.lienzo;
+    this.lienzo = lienzo;
+    this.render = render;
+    this.lentos = 0;
+    render.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    render.toneMapping = THREE.ACESFilmicToneMapping;
+    render.toneMappingExposure = 1.1;
+    const pmrem = new THREE.PMREMGenerator(render);
+    this.escena.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+    pmrem.dispose();
+
+    this.mandos?.dispose();
+    this.mandos = new OrbitControls(this.camara, lienzo);
     this.mandos.enablePan = false;
     this.mandos.enableDamping = true;
     this.mandos.dampingFactor = 0.09;
@@ -59,6 +75,7 @@ export class Visor {
     this.mandos.autoRotateSpeed = 1.4;
     this.mandos.minPolarAngle = 0.12;
     this.mandos.maxPolarAngle = Math.PI - 0.12;
+    this.mandos.autoRotate = !!this.girar && !quieto.matches;
     this.mandos.addEventListener("start", () => {
       clearTimeout(this.espera);
       this.mandos.autoRotate = false;
@@ -70,18 +87,47 @@ export class Visor {
     });
 
     // Un toque sin arrastrar elige una parte.
-    this.rayo = new THREE.Raycaster();
     let abajo = null;
-    this.lienzo.addEventListener("pointerdown", (e) => (abajo = [e.clientX, e.clientY]));
-    this.lienzo.addEventListener("pointerup", (e) => {
+    lienzo.addEventListener("pointerdown", (e) => (abajo = [e.clientX, e.clientY]));
+    lienzo.addEventListener("pointerup", (e) => {
       if (!abajo || Math.hypot(e.clientX - abajo[0], e.clientY - abajo[1]) > 6) return;
       const id = this.parteEn(e.clientX, e.clientY);
-      if (id) this.lienzo.dispatchEvent(new CustomEvent("parte", { bubbles: true, detail: id }));
+      if (id) lienzo.dispatchEvent(new CustomEvent("parte", { bubbles: true, detail: id }));
     });
 
-    this.reloj = new THREE.Clock();
-    this.observador = new ResizeObserver(() => this.ajustar());
-    this.render.setAnimationLoop(() => this.pintar());
+    // Si se pierde el 3D, se enseña la foto fija y se pone un lienzo nuevo.
+    lienzo.addEventListener("webglcontextlost", () => {
+      if (lienzo !== this.lienzo) return;
+      lienzo.closest(".escenario")?.classList.remove("listo");
+      render.setAnimationLoop(null);
+      setTimeout(() => this.rearrancar(lienzo), 300);
+    });
+
+    if (viejo) {
+      const caja = viejo.parentElement;
+      viejo.remove();
+      if (caja) {
+        caja.prepend(lienzo);
+        this.observador.disconnect();
+        this.observador.observe(caja);
+        this.ajustar();
+        if (this.modelo) caja.closest(".escenario")?.classList.add("listo");
+      }
+    }
+    render.setAnimationLoop(() => this.pintar());
+    return true;
+  }
+
+  rearrancar(perdido) {
+    if (perdido !== this.lienzo) return;
+    try {
+      this.render.dispose();
+    } catch {}
+    if (!this.arrancar()) {
+      // Sin 3D: se queda la foto fija.
+      this.ok = false;
+      this.lienzo.remove();
+    }
   }
 
   // Coloca el lienzo dentro de un elemento de la página.
@@ -187,20 +233,39 @@ export class Visor {
     m.contenido.position.lerpVectors(m.centroCerrada, m.centroAbierta, t).multiplyScalar(-1);
   }
 
-  // Ilumina una parte (o ninguna). `color` en hexadecimal.
-  resaltar(id, color = 0xc6f432) {
+  // ¿Hay en la pieza algo de un color parecido al lima? (Los contactos
+  // dorados, la funda de los cables.) Entonces el lima no se distinguiría.
+  tieneLima() {
+    const lima = new THREE.Color(LIMA);
+    let hay = false;
+    this.modelo.caja.traverse((o) => {
+      if (o.isMesh && !o.userData.marca) for (const x of [o.material].flat()) hay ||= parecidos(x.color, lima);
+    });
+    return hay;
+  }
+
+  // Ilumina una parte (o ninguna) y la hace parpadear. `color` en hexadecimal.
+  // En las piezas que ya tienen algo lima, parpadea en rosa.
+  resaltar(id, color = LIMA) {
     for (const malla of this.encendidas || []) malla.material = malla.userData.original;
     this.encendidas = [];
     this.resaltada = id;
     if (!id || !this.modelo) return;
+    let luz = new THREE.Color(color);
+    if (color === LIMA && this.tieneLima()) luz = new THREE.Color(ROSA);
     for (const o of this.modelo.partes[id] || []) {
       o.traverse((malla) => {
         if (!malla.isMesh || malla.userData.marca) return;
         malla.userData.original = malla.material;
         const copia = (x) => {
           const c = x.clone();
-          c.emissive = new THREE.Color(color);
-          c.emissiveIntensity = 0.5;
+          if (c.emissive) {
+            c.emissive = luz;
+            c.emissiveIntensity = 0.5;
+          } else {
+            // Sin brillo propio (la imagen de la pantalla): se tiñe de color.
+            c.userData.tinte = { base: x.color.clone(), tono: luz };
+          }
           return c;
         };
         malla.material = Array.isArray(malla.material) ? malla.material.map(copia) : copia(malla.material);
@@ -214,6 +279,8 @@ export class Visor {
     for (const s of this.chapas || []) s.removeFromParent();
     this.chapas = [];
     if (!this.modelo) return;
+    // Las posiciones tienen que estar al día antes de medir dónde va la chapa.
+    this.pivote.updateMatrixWorld(true);
     for (const [id, rotulo] of lista) {
       const o = this.modelo.partes[id]?.[0];
       if (!o) continue;
@@ -244,9 +311,20 @@ export class Visor {
     return null;
   }
 
+  // Un error al pintar no debe parar el bucle: si no, el lienzo se queda
+  // congelado con la pieza anterior.
   pintar() {
     if (!this.lienzo.isConnected || document.hidden) return;
+    try {
+      this.pintarYa();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  pintarYa() {
     const dt = Math.min(this.reloj.getDelta(), 0.1);
+    this.mide(dt);
     const m = this.modelo;
     if (m) {
       if (this.apertura !== this.meta) {
@@ -257,8 +335,13 @@ export class Visor {
       }
       if (!quieto.matches) for (const o of m.giratorios) o.rotation.y -= o.userData.gira * Math.PI * 2 * dt;
       if (this.encendidas?.length) {
-        const pulso = 0.4 + 0.3 * Math.sin(performance.now() / 260);
-        for (const malla of this.encendidas) for (const x of [malla.material].flat()) x.emissiveIntensity = pulso;
+        // Parpadeo claro: de casi apagada a muy encendida, una vez por segundo.
+        const pulso = quieto.matches ? 0.8 : 0.5 + 0.5 * Math.sin(performance.now() / 160);
+        for (const malla of this.encendidas)
+          for (const x of [malla.material].flat()) {
+            if (x.userData.tinte) x.color.copy(x.userData.tinte.base).lerp(x.userData.tinte.tono, 0.2 + 0.8 * pulso).multiplyScalar(1 + 0.8 * pulso);
+            else x.emissiveIntensity = 0.1 + 1.1 * pulso;
+          }
       }
     }
     if (this.entrada < 1) {
@@ -269,10 +352,28 @@ export class Visor {
     this.mandos.update();
     this.render.render(this.escena, this.camara);
   }
+
+  // Si el ordenador va justo, se baja la resolución para que no se atasque.
+  mide(dt) {
+    if (this.render.getPixelRatio() <= 1) return;
+    this.lentos = dt > 0.05 ? this.lentos + 1 : Math.max(0, this.lentos - 1);
+    if (this.lentos > 20) {
+      this.render.setPixelRatio(1);
+      this.ajustar();
+    }
+  }
 }
 
 // Escala el modelo para que su lado más largo mida 1,7 (cabe en una esfera de
 // radio 1), calcula cuánto crece al abrirse y le pone una sombra en el suelo.
+const LIMA = 0xc6f432;
+const ROSA = 0xff4fd8;
+// ¿Se parecen tanto dos colores que el brillo no se notaría?
+function parecidos(a, b) {
+  if (!a) return false;
+  return Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.9;
+}
+
 function preparar(modelo) {
   const medir = (t) => {
     for (const o of modelo.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t * ABRE);
