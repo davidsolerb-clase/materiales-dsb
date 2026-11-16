@@ -187,20 +187,39 @@ export class Visor {
     m.contenido.position.lerpVectors(m.centroCerrada, m.centroAbierta, t).multiplyScalar(-1);
   }
 
-  // Ilumina una parte (o ninguna). `color` en hexadecimal.
-  resaltar(id, color = 0xc6f432) {
+  // ¿Hay en la pieza algo de un color parecido al lima? (Los contactos
+  // dorados, la funda de los cables.) Entonces el lima no se distinguiría.
+  tieneLima() {
+    const lima = new THREE.Color(LIMA);
+    let hay = false;
+    this.modelo.caja.traverse((o) => {
+      if (o.isMesh && !o.userData.marca) for (const x of [o.material].flat()) hay ||= parecidos(x.color, lima);
+    });
+    return hay;
+  }
+
+  // Ilumina una parte (o ninguna) y la hace parpadear. `color` en hexadecimal.
+  // En las piezas que ya tienen algo lima, parpadea en rosa.
+  resaltar(id, color = LIMA) {
     for (const malla of this.encendidas || []) malla.material = malla.userData.original;
     this.encendidas = [];
     this.resaltada = id;
     if (!id || !this.modelo) return;
+    let luz = new THREE.Color(color);
+    if (color === LIMA && this.tieneLima()) luz = new THREE.Color(ROSA);
     for (const o of this.modelo.partes[id] || []) {
       o.traverse((malla) => {
         if (!malla.isMesh || malla.userData.marca) return;
         malla.userData.original = malla.material;
         const copia = (x) => {
           const c = x.clone();
-          c.emissive = new THREE.Color(color);
-          c.emissiveIntensity = 0.5;
+          if (c.emissive) {
+            c.emissive = luz;
+            c.emissiveIntensity = 0.5;
+          } else {
+            // Sin brillo propio (la imagen de la pantalla): se tiñe de color.
+            c.userData.tinte = { base: x.color.clone(), tono: luz };
+          }
           return c;
         };
         malla.material = Array.isArray(malla.material) ? malla.material.map(copia) : copia(malla.material);
@@ -214,6 +233,8 @@ export class Visor {
     for (const s of this.chapas || []) s.removeFromParent();
     this.chapas = [];
     if (!this.modelo) return;
+    // Las posiciones tienen que estar al día antes de medir dónde va la chapa.
+    this.pivote.updateMatrixWorld(true);
     for (const [id, rotulo] of lista) {
       const o = this.modelo.partes[id]?.[0];
       if (!o) continue;
@@ -257,8 +278,13 @@ export class Visor {
       }
       if (!quieto.matches) for (const o of m.giratorios) o.rotation.y -= o.userData.gira * Math.PI * 2 * dt;
       if (this.encendidas?.length) {
-        const pulso = 0.4 + 0.3 * Math.sin(performance.now() / 260);
-        for (const malla of this.encendidas) for (const x of [malla.material].flat()) x.emissiveIntensity = pulso;
+        // Parpadeo claro: de casi apagada a muy encendida, una vez por segundo.
+        const pulso = quieto.matches ? 0.8 : 0.5 + 0.5 * Math.sin(performance.now() / 160);
+        for (const malla of this.encendidas)
+          for (const x of [malla.material].flat()) {
+            if (x.userData.tinte) x.color.copy(x.userData.tinte.base).lerp(x.userData.tinte.tono, 0.2 + 0.8 * pulso).multiplyScalar(1 + 0.8 * pulso);
+            else x.emissiveIntensity = 0.1 + 1.1 * pulso;
+          }
       }
     }
     if (this.entrada < 1) {
@@ -273,6 +299,14 @@ export class Visor {
 
 // Escala el modelo para que su lado más largo mida 1,7 (cabe en una esfera de
 // radio 1), calcula cuánto crece al abrirse y le pone una sombra en el suelo.
+const LIMA = 0xc6f432;
+const ROSA = 0xff4fd8;
+// ¿Se parecen tanto dos colores que el brillo no se notaría?
+function parecidos(a, b) {
+  if (!a) return false;
+  return Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.9;
+}
+
 function preparar(modelo) {
   const medir = (t) => {
     for (const o of modelo.moviles) o.position.copy(o.userData.casa).addScaledVector(o.userData.abre, t * ABRE);
