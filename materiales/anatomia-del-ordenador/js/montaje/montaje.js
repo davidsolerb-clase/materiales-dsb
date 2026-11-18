@@ -270,6 +270,23 @@ function montar(app, ctx, nivel) {
     logrado(p, id);
   };
 
+  // Las dianas son cajas invisibles y a veces se tapan unas a otras (el panel
+  // lateral, por ejemplo, cubre toda la caja). Si el toque atraviesa varias,
+  // gana la que sirve ahora; después, un hueco para la pieza que hay en la mano.
+  const sirve = (id) => {
+    if (libreM) {
+      if (e.mano && ZONAS[id]) return PASOS.some((p) => p.tipo === "pon" && p.pieza === e.mano && !hecho(p) && disponible(p) && zonasDe(p).filter(libre).includes(id));
+      return PASOS.some((p) => !hecho(p) && (p.tipo === "toca" || p.tipo === "tornillos") && disponible(p) && pendientes(p).includes(id));
+    }
+    const p = paso();
+    if (!p) return false;
+    return p.tipo === "pon" ? zonasDe(p).filter(libre).includes(id) : pendientes(p).includes(id);
+  };
+  banco.prefiere = (ids) => {
+    const orden = (id) => (sirve(id) ? 0 : e.mano && ZONAS[id] ? 1 : 2);
+    return ids.reduce((a, b) => (orden(b) < orden(a) ? b : a));
+  };
+
   function tocaLibre(id) {
     if (e.mano && ZONAS[id]) {
       const mios = PASOS.filter((p) => p.tipo === "pon" && p.pieza === e.mano && !hecho(p));
