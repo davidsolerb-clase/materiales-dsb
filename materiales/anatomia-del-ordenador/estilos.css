@@ -173,6 +173,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .pie { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-top: 20px; border-top: 2px solid var(--linea); font-size: .9rem; color: var(--suave); }
 .pie-botones { display: flex; gap: 18px; flex-wrap: wrap; }
+.firma { flex-basis: 100%; text-align: center; padding-top: 14px; font-size: .95rem; }
+.tipo { font: 700 .8rem var(--titulos); letter-spacing: .08em; text-transform: uppercase; color: var(--suave); border: 1.5px solid var(--linea); border-radius: 999px; padding: 3px 10px; }
 
 /* ---------- Atlas ---------- */
 
@@ -426,6 +428,16 @@ dialog form { margin-top: 18px; }
 .profe h2 { font-size: 1.2rem; margin-top: 10px; }
 .profe-notas { display: grid; gap: 8px; color: var(--suave); padding-left: 1.2em; list-style: disc; }
 .profe-resumen { font-size: 1.15rem; }
+.profe-notas b { color: var(--texto); }
+.escribir textarea { width: 100%; padding: 12px 16px; font: 700 1.3rem ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--texto); background: var(--capa); border: 2px solid var(--linea); border-radius: 14px; resize: vertical; }
+.escribir textarea:focus { outline: none; border-color: var(--lima); }
+.nota-docente { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 18px 22px; border-radius: var(--radio); background: var(--capa); border: 2px solid var(--lima); }
+.nota-numero { font-family: var(--titulos); line-height: 1; }
+.nota-numero b { font-size: clamp(3rem, 9vw, 4.5rem); font-weight: 800; color: var(--lima); }
+.nota-numero span { font-size: 1.3rem; color: var(--suave); }
+.nota-etiqueta { font-family: var(--titulos); font-weight: 700; font-size: 1.3rem; }
+.nota-detalle { color: var(--suave); }
+.nota-detalle b { color: var(--texto); }
 .profe table { width: 100%; margin-top: 10px; border-collapse: collapse; }
 .profe th, .profe td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linea); }
 .profe th { font-size: .85rem; color: var(--suave); font-weight: 600; }

@@ -4,6 +4,9 @@
 // El código es ese mismo resumen en diez letras, para que el alumno lo
 // entregue (en un papel o en el aula virtual) y el docente lo lea en #/profe.
 // No lleva nombres ni datos personales: solo cuenta estrellas.
+//
+// Si un alumno trabaja en varios dispositivos, tiene un código en cada uno.
+// `suma` los junta y `nota` propone una calificación de 0 a 12.
 
 import { PIEZAS } from "./datos.js";
 import { progreso, estrellasDe } from "./progreso.js";
@@ -78,3 +81,40 @@ export function leeCodigo(texto) {
   if (Number(n >> 4n) !== VERSION || vistas > PIEZAS.length) return null;
   return { vistas, niveles: NIVELES.map((id, i) => ({ id, estrellas: estrellas[i] })) };
 }
+
+// ---------------------------------------------------------------- Nota
+
+// Lo básico: lo que hay que dominar para llegar al 10.
+// Dominar un nivel es sacar 2 estrellas (3 de cada 4 respuestas bien o más).
+// Las piezas del atlas cuentan como un punto más; basta con ver VISTAS_BASICO.
+export const BASICOS = ["reto-1", "reto-2", "dentro-1", "montaje-0", "montaje-1", "enciende-1", "repara-1"];
+export const VISTAS_BASICO = 10;
+// Del 10 al 12 no sube en línea recta: el primer escalón es fácil y el último,
+// solo para quien lo ha hecho todo con tres estrellas.
+const CURVA_EXTRA = 1.5;
+
+// Junta varias lecturas de `leeCodigo` (un código por dispositivo).
+// En cada nivel cuenta la mejor puntuación, así que repetir un nivel no suma dos veces.
+export function suma(lecturas) {
+  const niveles = NIVELES.map((id, i) => ({ id, estrellas: Math.max(0, ...lecturas.map((l) => l.niveles[i].estrellas)) }));
+  return { vistas: Math.max(0, ...lecturas.map((l) => l.vistas)), niveles };
+}
+
+// De 0 a 10 mide lo básico. Por encima de 10 solo se llega con lo básico completo:
+// las terceras estrellas de los niveles básicos y todos los niveles difíciles.
+export function nota({ vistas, niveles }) {
+  const est = Object.fromEntries(niveles.map((n) => [n.id, n.estrellas]));
+  const basicos = [Math.min(1, vistas / VISTAS_BASICO), ...BASICOS.map((id) => Math.min(est[id], 2) / 2)];
+  const basico = basicos.reduce((a, b) => a + b, 0) / basicos.length;
+  const dificiles = NIVELES.filter((id) => !BASICOS.includes(id));
+  const extras = [...dificiles.map((id) => est[id] / 3), ...BASICOS.map((id) => (est[id] === 3 ? 1 : 0))];
+  const extra = extras.reduce((a, b) => a + b, 0) / extras.length;
+  const completo = basico > 0.999;
+  const valor = completo ? 10 + 2 * extra ** CURVA_EXTRA : 10 * basico;
+  const redondo = Math.round(valor * 10) / 10;
+  const faltan = BASICOS.filter((id) => est[id] < 2);
+  const etiqueta = redondo >= 11.5 ? "Excelencia" : redondo > 10 ? "Va más allá de lo básico" : redondo === 10 ? "Domina lo básico" : redondo >= 8 ? "Casi domina lo básico" : redondo >= 5 ? "Lo básico, a medias" : "Lo básico, por empezar";
+  return { nota: redondo, basico, extra, completo, faltan, faltanVistas: Math.max(0, VISTAS_BASICO - vistas), etiqueta };
+}
+
+export const esBasico = (id) => BASICOS.includes(id);

@@ -35,7 +35,8 @@ const NOMBRES = {
 
 export const montaje = {
   id: "montaje",
-  titulo: "Taller: monta el ordenador",
+  titulo: "Monta el ordenador",
+  tipo: "Taller",
   descripcion: "Coge las piezas, ponlas en su sitio, conecta los cables y enciéndelo.",
   foto: "miniaturas/taller-montaje.webp",
   necesita3d: true,

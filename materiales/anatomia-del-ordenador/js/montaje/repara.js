@@ -14,7 +14,8 @@ import { ELEMENTOS, SINTOMAS, AVERIAS, elemento, hallazgo, estaba, arreglo, sano
 
 export const repara = {
   id: "repara",
-  titulo: "Taller: repara",
+  titulo: "Repara el ordenador",
+  tipo: "Taller",
   descripcion: "Te traen un ordenador que falla. Enciéndelo, piensa y arréglalo.",
   foto: "miniaturas/taller-repara.webp",
   necesita3d: true,

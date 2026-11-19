@@ -11,7 +11,17 @@ Un ordenador en 3D para aprender sus piezas: verlas, abrirlas, montarlo y, más 
 | 3. Enciende | Quita una pieza o un cable, enciende y ve qué pasa. La corriente y los datos se ven correr por los cables. | Experimenta, predice y el viaje de un dato |
 | 4. Repara | Recibe un ordenador con un síntoma y busca la avería. | Algo suelto, pieza rota y doble avería |
 
-El progreso se guarda en el navegador de cada alumno. La portada lo resume en un carné con un código de diez letras; el docente lo lee en `#/profe`.
+El progreso se guarda en el navegador de cada alumno. La portada lo resume en un carné con un código de diez letras. Si el alumno usa varios dispositivos, tiene un código en cada uno.
+
+## La nota del docente
+
+En `#/profe` el docente pega uno o varios códigos del mismo alumno y obtiene una nota propuesta de 0 a 12. En cada nivel cuenta la mejor puntuación de todos los códigos, así que repetir un nivel en otro dispositivo no suma dos veces.
+
+- **0 a 10: lo básico.** Ver 10 piezas del atlas y dominar siete niveles (los de la lista de abajo). Dominar es sacar 2 estrellas; con 1 estrella cuenta la mitad. El 10 es tenerlo todo.
+- **10 a 12: la excelencia.** Solo se pasa de 10 con lo básico completo. Suma la tercera estrella de los niveles básicos y los ocho niveles difíciles. No sube en línea recta (el bonus es `2 × fracción^1,5`): los primeros puntos cuestan poco y el 12 exige tres estrellas en todo.
+- Niveles básicos: ¿Qué pieza es? 1 y 2, Por dentro 1, Monta 1 y 2, Enciéndelo 1, Repara 1.
+
+La fórmula está en `js/carne.js` (`BASICOS`, `VISTAS_BASICO`, `nota`). Si cambias los niveles básicos, cambia también esta lista y el texto de `#/profe`.
 
 ## Dónde está cada cosa
 
@@ -21,7 +31,7 @@ El progreso se guarda en el navegador de cada alumno. La portada lo resume en un
 - `js/montaje/mundo.js` y `caja.js`: dónde encaja cada cosa dentro de la caja.
 - `js/montaje/sistema.js`: qué le pasa al ordenador según lo que le falte, y los casos de avería.
 - `js/montaje/puesto.js`: el ordenador ya montado que usan Enciende y Repara.
-- `js/carne.js`: el carné y el código de resultado.
+- `js/carne.js`: el carné, el código de resultado, la suma de códigos y la nota.
 
 Para cambiar un texto del montaje, o el orden de los pasos, basta con tocar `pasos.js`. Cada paso explica al principio del archivo qué campos lleva.
 

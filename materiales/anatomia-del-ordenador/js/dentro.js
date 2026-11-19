@@ -11,7 +11,8 @@ import { partida, botonOpcion, elegir, marcarOpciones } from "./partida.js";
 
 export const dentro = {
   id: "dentro",
-  titulo: "Reto: por dentro",
+  titulo: "Por dentro",
+  tipo: "Reto",
   descripcion: "Las piezas, abiertas. ¿Sabes qué es cada parte?",
   necesita3d: true,
   niveles: [
