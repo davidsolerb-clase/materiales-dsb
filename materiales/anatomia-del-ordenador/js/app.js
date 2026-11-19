@@ -23,7 +23,7 @@ import { dentro } from "./dentro.js";
 import { montaje } from "./montaje/montaje.js";
 import { enciende } from "./montaje/enciende.js";
 import { repara } from "./montaje/repara.js";
-import { carne, leeCodigo } from "./carne.js";
+import { carne, leeCodigo, suma, nota, esBasico, BASICOS, VISTAS_BASICO } from "./carne.js";
 
 const ACTIVIDADES = [reto, dentro, montaje, enciende, repara];
 
@@ -86,7 +86,7 @@ function inicio() {
 
     <section class="bloque">
       <div class="bloque-cabeza">
-        <h2><span class="paso">1</span>Explora</h2>
+        <h2><span class="paso">1</span>Explora las piezas</h2>
         <p>${vistas ? `Has visto <b>${vistas} de ${PIEZAS.length}</b> piezas.` : `${PIEZAS.length} piezas. Toca una para verla de cerca y abrirla.`}</p>
       </div>
       <ul class="piezas">
@@ -102,7 +102,7 @@ function inicio() {
       (act, i) => `
       <section class="bloque">
         <div class="bloque-cabeza">
-          <h2><span class="paso">${i + 2}</span>${act.titulo}</h2>
+          <h2><span class="paso">${i + 2}</span>${act.titulo}<small class="tipo">${act.tipo}</small></h2>
           <p>${act.descripcion}</p>
         </div>
         <div class="bloque-cuerpo ${act.foto ? "con-foto" : ""}">
@@ -137,6 +137,7 @@ function inicio() {
         <button class="enlace" data-borrar>Borrar mi progreso</button>
         <button class="enlace" data-creditos>Créditos</button>
       </span>
+      <span class="firma">Hecho con <span aria-label="amor" role="img">❤️</span> por David Soler para Colegios Consolación</span>
     </footer>`;
 
   // Carrusel de piezas en la portada. Se para un rato si alguien gira la pieza.
@@ -192,7 +193,7 @@ function inicio() {
 const nombreNivel = (id) => {
   const [act, n] = id.split("-");
   const a = ACTIVIDADES.find((x) => x.id === act);
-  return `${a.titulo.replace(/^(Reto|Taller): /, "")} · ${a.niveles.find((x) => x.id === n).nombre}`;
+  return `${a.tipo}: ${a.titulo} · ${a.niveles.find((x) => x.id === n).nombre}`;
 };
 
 function pintaCarne() {
@@ -213,13 +214,13 @@ function pintaCarne() {
           <p>Tu código de resultado</p>
           <output>${c.codigo}</output>
           <button class="boton" data-copiar="${c.codigo}">Copiar</button>
-          <small>Dáselo a tu profe: le dice hasta dónde has llegado.</small>
+          <small>Dáselo a tu profe: le dice hasta dónde has llegado. Si usas más de un dispositivo, dale el código de cada uno.</small>
         </div>
       </div>
     </section>`;
 }
 
-// Página para docentes: lee el código de un alumno.
+// Página para docentes: lee uno o varios códigos del mismo alumno y propone una nota.
 function profe() {
   app.className = "p-profe";
   app.innerHTML = `
@@ -228,37 +229,66 @@ function profe() {
       <span class="marca"><i></i>Para docentes</span>
     </header>
     <div class="profe">
-      <h1 tabindex="-1">Leer un código de resultado</h1>
-      <p class="entrada">Cada alumno tiene en la portada un código de diez letras que resume su progreso. Pídeselo por el aula virtual o en un papel y escríbelo aquí.</p>
+      <h1 tabindex="-1">Leer los códigos de un alumno</h1>
+      <p class="entrada">Cada dispositivo da un código de diez letras. Si el alumno ha trabajado en varios, pega todos aquí, uno por línea: se suman y sale una sola nota.</p>
       <form class="escribir" autocomplete="off">
-        <label for="codigo">Código del alumno</label>
-        <div class="fila">
-          <input id="codigo" type="text" maxlength="12" placeholder="ABCDE-FGHJK" autocapitalize="characters" spellcheck="false">
-          <button class="boton principal">Leer</button>
-        </div>
+        <label for="codigo">Códigos del alumno</label>
+        <textarea id="codigo" rows="3" placeholder="ABCDE-FGHJK&#10;KLMNP-QRSTU" autocapitalize="characters" spellcheck="false"></textarea>
+        <button class="boton principal">Leer y sumar</button>
       </form>
       <div class="profe-resultado" aria-live="polite"></div>
+      <h2>Cómo se calcula la nota</h2>
+      <ul class="profe-notas">
+        <li><b>Del 0 al 10 es lo básico.</b> Cuenta ver ${VISTAS_BASICO} piezas en el atlas y dominar siete niveles: «¿Qué pieza es?» 1 y 2, «Por dentro» 1, «Monta» 1 y 2, «Enciéndelo» 1 y «Repara» 1. Dominar un nivel es sacar dos estrellas. Con una estrella cuenta la mitad.</li>
+        <li><b>El 10 es dominar lo básico.</b> No se pasa de 10 hasta tenerlo todo.</li>
+        <li><b>Del 10 al 12 es la excelencia.</b> Suma la tercera estrella de los niveles básicos y todos los niveles difíciles. No sube en línea recta: los primeros puntos cuestan poco, y el 12 es solo para quien ha sacado tres estrellas en todo.</li>
+        <li>Si dos códigos tienen el mismo nivel, cuenta el mejor. No se suman dos veces.</li>
+        <li>La nota es una propuesta. Tú decides la definitiva.</li>
+      </ul>
       <h2>A tener en cuenta</h2>
       <ul class="profe-notas">
-        <li>El código no lleva el nombre del alumno ni ningún dato personal. Solo cuenta piezas vistas y estrellas.</li>
-        <li>El progreso se guarda en el navegador de cada alumno. Si cambia de ordenador, empieza de cero.</li>
-        <li>El código cambia cada vez que el alumno mejora un resultado.</li>
+        <li>El código no lleva el nombre del alumno ni ningún dato personal. Solo cuenta piezas vistas y estrellas. Tienes que saber de quién es cada uno.</li>
+        <li>Suma solo códigos del mismo alumno. No hay forma de comprobarlo.</li>
+        <li>El código cambia cada vez que el alumno mejora un resultado. Pide el último de cada dispositivo.</li>
       </ul>
     </div>`;
   const salida = app.querySelector(".profe-resultado");
+  const cero = (n) => n.toFixed(1).replace(".", ",");
   app.querySelector("form").onsubmit = (ev) => {
     ev.preventDefault();
-    const r = leeCodigo(app.querySelector("#codigo").value);
-    if (!r) {
-      salida.innerHTML = `<p class="veredicto mal">Ese código no es válido. Revisa que estén las diez letras.</p>`;
+    const escritos = [...new Set(app.querySelector("#codigo").value.split(/[\s,;]+/).filter(Boolean).map((t) => t.toUpperCase()))];
+    if (!escritos.length) {
+      salida.innerHTML = `<p class="veredicto mal">Escribe al menos un código.</p>`;
       return;
     }
-    const total = r.niveles.reduce((a, n) => a + n.estrellas, 0);
+    const lecturas = escritos.map((t) => ({ texto: t, datos: leeCodigo(t) }));
+    const buenas = lecturas.filter((l) => l.datos);
+    const malas = lecturas.filter((l) => !l.datos);
+    const avisoMalos = malas.length
+      ? `<p class="veredicto mal">${malas.length === 1 ? "Este código no es válido" : "Estos códigos no son válidos"}: ${malas.map((l) => l.texto).join(", ")}. Revisa que estén las diez letras.</p>`
+      : "";
+    if (!buenas.length) {
+      salida.innerHTML = avisoMalos;
+      return;
+    }
+    const junto = suma(buenas.map((l) => l.datos));
+    const n = nota(junto);
+    const total = junto.niveles.reduce((a, x) => a + x.estrellas, 0);
+    const de = (id) => junto.niveles.find((x) => x.id === id);
+    const orden = [...BASICOS.map(de), ...junto.niveles.filter((x) => !esBasico(x.id))];
     salida.innerHTML = `
-      <p class="profe-resumen"><b>${total}</b> de ${r.niveles.length * 3} estrellas · <b>${r.vistas}</b> de ${PIEZAS.length} piezas vistas</p>
+      ${avisoMalos}
+      <div class="nota-docente">
+        <p class="nota-numero"><b>${cero(n.nota)}</b><span> / 12</span></p>
+        <div>
+          <p class="nota-etiqueta">${n.etiqueta}</p>
+          <p class="nota-detalle">${buenas.length === 1 ? "Con 1 código" : `Sumando ${buenas.length} códigos`} · <b>${total}</b> de ${junto.niveles.length * 3} estrellas · <b>${junto.vistas}</b> de ${PIEZAS.length} piezas vistas</p>
+          ${n.completo ? "" : `<p class="nota-detalle">Para llegar al 10 falta: ${[...(n.faltanVistas ? [`ver ${n.faltanVistas === 1 ? "1 pieza más" : `${n.faltanVistas} piezas más`} en el atlas`] : []), ...n.faltan.map(nombreNivel)].join("; ")}.</p>`}
+        </div>
+      </div>
       <table>
-        <thead><tr><th>Actividad y nivel</th><th>Estrellas</th></tr></thead>
-        <tbody>${r.niveles.map((n) => `<tr><td>${nombreNivel(n.id)}</td><td>${n.estrellas ? pintaEstrellas(n.estrellas) : "Sin hacer"}</td></tr>`).join("")}</tbody>
+        <thead><tr><th>Actividad y nivel</th><th>Cuenta para</th><th>Estrellas</th></tr></thead>
+        <tbody>${orden.map((x) => `<tr><td>${nombreNivel(x.id)}</td><td>${esBasico(x.id) ? "Lo básico" : "Excelencia"}</td><td>${x.estrellas ? pintaEstrellas(x.estrellas) : "Sin hacer"}</td></tr>`).join("")}</tbody>
       </table>`;
   };
   return () => {};

@@ -19,7 +19,8 @@ const RONDAS = [["c8"], ["ram1", "ram2"], ["monitor"], ["cpufan"], ["ssd-datos"]
 
 export const enciende = {
   id: "enciende",
-  titulo: "Taller: enciéndelo",
+  titulo: "Enciéndelo",
+  tipo: "Taller",
   descripcion: "¿Qué pasa si falta una pieza o un cable? Quítalo, enciende y mira.",
   foto: "miniaturas/taller-enciende.webp",
   necesita3d: true,

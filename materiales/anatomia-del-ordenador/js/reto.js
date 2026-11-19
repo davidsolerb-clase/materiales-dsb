@@ -13,7 +13,8 @@ import { partida, botonOpcion, elegir, marcarOpciones } from "./partida.js";
 
 export const reto = {
   id: "reto",
-  titulo: "Reto: ¿qué pieza es?",
+  titulo: "¿Qué pieza es?",
+  tipo: "Reto",
   descripcion: "Una pregunta por cada pieza. Cada nivel es más difícil.",
   niveles: [
     { id: "1", etiqueta: "Nivel 1", nombre: "Ponle nombre", texto: "Ves la pieza en 3D y eliges cómo se llama." },
