@@ -63,6 +63,8 @@ export class Banco {
     this.sucio = true;
     this.sombras = true;
     this.alTocar = () => {};
+    // Si el rayo atraviesa varias dianas, cuál se toca. Por defecto, la más cercana.
+    this.prefiere = (ids) => ids[0];
 
     this.rayo = new THREE.Raycaster();
     let abajo = null;
@@ -216,8 +218,9 @@ export class Banco {
     const r = this.lienzo.getBoundingClientRect();
     const punto = new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
     this.rayo.setFromCamera(punto, this.camara);
-    const toque = this.rayo.intersectObjects([...this.activas].map((d) => d.vol), false)[0];
-    return toque ? toque.object.userData.diana : null;
+    const toques = this.rayo.intersectObjects([...this.activas].map((d) => d.vol), false);
+    const ids = [...new Set(toques.map((t) => t.object.userData.diana))];
+    return ids.length ? this.prefiere(ids) : null;
   }
 
   // ---------------------------------------------------------------- Miniaturas
